@@ -1,0 +1,203 @@
+\usepackage{amsopn, bm}
+% Special math commands
+% ----------------------------------------------------------------------------
+\usepackage[mathscr]{euscript}
+\DeclareMathOperator{\trace}{trace}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\blkdiag}{blkdiag}
+\DeclareMathOperator{\spn}{span}	% span of vectors
+\DeclareMathOperator{\blkspn}{span^\square}
+\DeclareMathOperator{\colspn}{colspan}
+\DeclareMathOperator{\spnS}{\spn^{\mathbb{S}}}
+\DeclareMathOperator{\rnk}{rank}
+\DeclareMathOperator{\spec}{spec}	% spectrum of a matrix
+\DeclareMathOperator{\sign}{sign}	% the sign function
+\DeclareMathOperator{\nnz}{nnz}
+
+
+%% Standard notation for... %%------------------------------------------
+% Spaces
+\newcommand{\spC}{\mathbb{C}}				% field of complex scalars
+\newcommand{\spCpos}{\mathbb{C}^+}				% field of complex scalars
+\newcommand{\spD}{\mathbb{D}}				% generic domain
+\newcommand{\spEK}{\mathcal{E}}				% Krylov subspace in \spC^{n}
+\newcommand{\spK}{\mathcal{K}}				% Krylov subspace in \spC^{n}
+\newcommand{\spQ}{\mathcal{Q}}				% Rational Krylov subspace in \spC^{n}
+\newcommand{\spKblk}{\mathcal{K}^{\square}}	% block Krylov subspace in \spC^{n}
+\newcommand{\spP}{\mathbb{P}}				% space of polynomials
+\newcommand{\spR}{\mathbb{R}}				% field of real scalars
+\newcommand{\spU}{\mathcal{U}}				% vector space
+\newcommand{\spV}{\mathcal{V}}				% vector space
+\newcommand{\spW}{\mathcal{W}}				% vector space
+
+% Scalars (lowercase Greek, no style)
+\newcommand{\thetatil}{\widetilde{\theta}}
+
+% Block scalars (uppercase Greek, no style)
+
+
+% Matrix components (lowercase Roman, no style)
+
+
+% Block matrix components (uppercase Roman, no style)
+
+
+% Vectors (bold lowercase Roman)
+\newcommand{\va}{\bm{a}}
+\newcommand{\vb}{\bm{b}}
+\newcommand{\vd}{\bm{d}}
+\newcommand{\ve}{\bm{e}}
+\newcommand{\vehat}{\widehat{\ve}}
+\newcommand{\vf}{\bm{f}}
+\newcommand{\vg}{\bm{g}}
+\newcommand{\vh}{\bm{h}}
+\newcommand{\vk}{\bm{k}}
+\newcommand{\vp}{\bm{p}}
+\newcommand{\vq}{\bm{q}}
+\newcommand{\vr}{\bm{r}}
+\newcommand{\vs}{\bm{s}}
+\newcommand{\vu}{\bm{u}}
+\newcommand{\vv}{\bm{v}}
+\newcommand{\vvhat}{\widehat{\vv}}
+\newcommand{\vw}{\bm{w}}
+\newcommand{\vx}{\bm{x}}
+\newcommand{\vy}{\bm{y}}
+\newcommand{\vz}{\bm{z}}
+\newcommand{\vone}{\boldsymbol{1}}
+\newcommand{\vnull}{\boldsymbol{0}}
+\newcommand{\vxi}{\boldsymbol{\xi}}
+\newcommand{\vepsilon}{\boldsymbol{\varepsilon}}
+
+% Block vectors (bold uppercase Roman)
+\newcommand{\vA}{\bm{A}}
+\newcommand{\vB}{\bm{B}}
+\newcommand{\vC}{\bm{C}}
+\newcommand{\vD}{\bm{D}}
+\newcommand{\vDtil}{\widetilde{\bm{D}}}
+\newcommand{\vE}{\bm{E}}
+\newcommand{\vEhat}{\widehat{\bm{E}}}
+\newcommand{\vF}{\bm{F}}
+\newcommand{\vGamma}{\bm{\Gamma}}
+\newcommand{\vH}{\bm{H}}
+\newcommand{\vI}{\bm{I}}
+\newcommand{\vImat}[4]{\vI^{#1 \times #2}_{#3,#4}}
+\newcommand{\vL}{\bm{L}}
+\newcommand{\vM}{\bm{M}}
+\newcommand{\vP}{\bm{P}}
+\newcommand{\vQ}{\bm{Q}}
+\newcommand{\vR}{\bm{R}}
+\newcommand{\vRhat}{\widehat{\bm{R}}}
+\newcommand{\vT}{\bm{T}}
+\newcommand{\vS}{\bm{S}}
+\newcommand{\vU}{\bm{U}}
+\newcommand{\vUI}{\begin{bmatrix} \vU \\ -I\end{bmatrix}}
+\newcommand{\vUIone}{\begin{bmatrix} \vU^\one \\ -I\end{bmatrix}}
+\newcommand{\vUIk}{\begin{bmatrix} \vU^\k \\ -I\end{bmatrix}}
+\newcommand{\vUIkmore}{\begin{bmatrix} \vU^\kmore \\ -I\end{bmatrix}}
+\newcommand{\vV}{\bm{V}}
+\newcommand{\vVhat}{\widehat{\bm{V}}}
+\newcommand{\vW}{\bm{W}}
+\newcommand{\vX}{\bm{X}}
+\newcommand{\vXhat}{\widehat{\bm{X}}}
+\newcommand{\vY}{\bm{Y}}
+\newcommand{\vYhat}{\widehat{\bm{Y}}}
+\newcommand{\vZ}{\bm{Z}}
+\newcommand{\vZero}{0}
+
+% Square operator matrices and Basis matrices (uppercase Roman)
+\newcommand{\Ctil}{\widetilde{C}}
+\newcommand{\Dtil}{\widetilde{D}}
+\newcommand{\Hhat}{\widehat{H}}
+\newcommand{\Hunder}{\underline{H}}
+\newcommand{\Vhat}{\widehat{V}}
+\newcommand{\Beta}{B}
+\newcommand{\Gammatil}{\widetilde{\Gamma}}
+\newcommand{\ntil}{\widetilde{n}}
+\newcommand{\Ptil}{\widetilde{P}}
+\newcommand{\Qhat}{\widehat{Q}}
+\newcommand{\Stil}{\widetilde{S}}
+\newcommand{\Omtil}{\widetilde{\Omega}}
+\newcommand{\Xhat}{\widehat{X}}
+\newcommand{\Yhat}{\widehat{Y}}
+\newcommand{\Xtil}{\widetilde{X}}
+\newcommand{\Ytil}{\widetilde{Y}}
+
+% Block square operator matrices (uppercase script) and tensors
+%\renewcommand{\AA}{\mathcal{A}}
+\newcommand{\BB}{\mathcal{B}}
+\newcommand{\CC}{\mathcal{C}}
+\newcommand{\DD}{\mathcal{D}}
+\newcommand{\EE}{\mathcal{E}}
+\newcommand{\FF}{\mathcal{F}}
+\newcommand{\GG}{\mathcal{G}}
+\newcommand{\GGunder}{\underline{\GG}}
+\newcommand{\LL}{\mathcal{L}}
+\newcommand{\HH}{\mathcal{H}}
+\newcommand{\HHtil}{\widetilde{\HH}}
+\newcommand{\HHunder}{\underline{\HH}}
+\newcommand{\II}{\mathcal{I}}
+\newcommand{\JJ}{\mathcal{J}}
+\newcommand{\JJtil}{\widetilde{\JJ}}
+\newcommand{\KK}{\mathcal{K}}
+\newcommand{\MM}{\mathcal{M}}
+\newcommand{\MMhar}{\MM_{\har}}
+\newcommand{\MMrad}{\MM_{\rad}}
+\newcommand{\RR}{\mathcal{R}}
+\renewcommand{\SS}{\mathscr{S}}
+\newcommand{\SStil}{\widetilde{\SS}}
+\newcommand{\TT}{\mathcal{T}}
+\newcommand{\UU}{\mathcal{U}}
+\newcommand{\WW}{\mathcal{W}}
+\newcommand{\XX}{\mathcal{X}}
+\newcommand{\YY}{\mathcal{Y}}
+\newcommand{\XXarrow}{\vec{\XX}}
+
+% Block basis matrices (bold uppercase script)
+\newcommand{\bKK}{\bm{\mathcal{K}}}
+\newcommand{\bPP}{\bm{\mathcal{P}}}
+\newcommand{\bQQ}{\bm{\mathcal{Q}}}
+\newcommand{\bRR}{\bm{\mathcal{R}}}
+\newcommand{\bUU}{\bm{\mathcal{U}}}
+\newcommand{\bVV}{\bm{\mathcal{V}}}
+\newcommand{\bVVhat}{\widehat{\bVV}}
+\newcommand{\bWW}{\bm{\mathcal{W}}}
+\newcommand{\bWWhat}{\widehat{\bWW}}
+% ------------------------------------------
+
+% Other math short-cuts
+\newcommand{\inv}{{-1}}
+\newcommand{\cinv}{{-*}}
+\newcommand{\one}{{(1)}}
+\renewcommand{\j}{{(j)}}
+\renewcommand{\k}{{(k)}}
+\newcommand{\m}{{$(m)$}\xspace}
+\newcommand{\kless}{{(k-1)}}
+\newcommand{\kmore}{{(k+1)}}
+\newcommand{\half}{{1/2}}
+\newcommand{\ihalf}{{-1/2}}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\err}{err}
+\DeclareMathOperator{\res}{res}
+
+\newcommand{\invAb}{A^{-1}\vb}
+\newcommand{\fAb}{f(A)\vb}
+\newcommand{\invAB}{A^{-1}\vB}
+\newcommand{\fAB}{f(A)\vB}
+\newcommand{\lmin}{\lambda_{\min}}
+\newcommand{\lmax}{\lambda_{\max}}
+\newcommand{\numax}{\nu_{\max}}
+
+\newcommand{\ip}[2]{\langle #1,#2 \rangle}
+\newcommand{\ipnoarg}{\ip{\cdot}{\cdot}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\abs}[1]{\left|#1\right|}
+
+\newcommand{\ipF}[2]{\ip{#1}{#2}_{\text{F}}}
+\newcommand{\normA}[1]{\norm{#1}_{A}}
+\newcommand{\normF}[1]{\norm{#1}_{\text{F}}}
+
+% Misc
+\newcommand{\MATLAB}{\textsc{Matlab}\xspace}
+\newcommand{\bigO}{\mathcal{O}}
+\newcommand{\eps}{\varepsilon}
+\renewcommand{\d}{\,\mathrm{d}}

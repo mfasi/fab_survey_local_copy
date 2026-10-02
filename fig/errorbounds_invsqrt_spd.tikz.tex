@@ -1,0 +1,17 @@
+\pgfplotsset{height=0.43\linewidth,width=0.95\linewidth,compat=1.10,every axis/.append style={legend style={/tikz/every even column/.append style={column sep=6pt}}}}
+\pgfplotsset{every tick label/.append style={font=\scriptsize}}
+
+\noindent%
+\begin{tikzpicture}[scale=1]%
+
+\begin{semilogyaxis}[legend columns=3, legend style={at={(-.1,1.05)},anchor=south west}, cycle list name=list_bounds, grid=major, xlabel={\scriptsize Krylov dimension $m$}, ylabel={\scriptsize Error norm}, xmin = 0, xmax = 250, ymin = 1e-14, ymax = 2e2]
+
+\addplot+[mark repeat=25] table [x ={iter},y ={true}] {fig/dat/bounds_invsqrt.dat};\addlegendentry{\scriptsize  true error}
+\addplot+[mark repeat=25] table [x ={iter},y ={diff}] {fig/dat/bounds_invsqrt.dat};\addlegendentry{\scriptsize \eqref{eq:diff_of_iterates}, $d = 2$}
+\addplot+[mark repeat=25] table [x ={iter},y ={chenex}] {fig/dat/bounds_invsqrt.dat};\addlegendentry{\scriptsize \eqref{eq:error_bound_chen}, ex.\ err.}
+\addplot+[mark repeat=25] table [x ={iter},y ={chengm}] {fig/dat/bounds_invsqrt.dat};\addlegendentry{\scriptsize \eqref{eq:error_bound_chen}, err.\ bound, $k = 5$}
+\addplot+[mark repeat=25] table [x ={iter},y ={gmlb}] {fig/dat/bounds_invsqrt.dat};\addlegendentry{\scriptsize Lower bound~\eqref{eq:gauss_bounds_error}, $k = 5$}
+\addplot+[mark repeat=25] table [x ={iter},y ={gmub}] {fig/dat/bounds_invsqrt.dat};\addlegendentry{\scriptsize Upper bound~\eqref{eq:gauss_bounds_error}, $k = 5$}
+\end{semilogyaxis}
+
+\end{tikzpicture}

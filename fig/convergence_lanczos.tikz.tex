@@ -1,0 +1,29 @@
+\pgfplotsset{height=0.43\linewidth,width=0.48\linewidth,compat=1.10,every axis/.append style={legend style={/tikz/every even column/.append style={column sep=6pt}}}}
+\pgfplotsset{every tick label/.append style={font=\scriptsize}}
+
+\noindent%
+\begin{tikzpicture}[scale=1]%
+\begin{groupplot}[group style={group size=2 by 2, vertical sep=2.3cm, horizontal sep=2cm}]
+
+\nextgroupplot[legend columns=2, legend style={at={(.6,1.05)},anchor=south west}, cycle list name=list_convergence, grid=major, xlabel={\scriptsize Krylov dimension $m$}, ylabel={\scriptsize Error norm}, xmin = 0, xmax = 20, ymin = 1e-17, ymax = 1e2, ymode = log]
+
+\addplot+ table [x ={iter},y ={true}] {fig/dat/convergence_exp_kappa1e2.dat};\addlegendentry{\scriptsize true error}
+\addplot+ table [x ={iter},y ={bound}] {fig/dat/convergence_exp_kappa1e2.dat};\addlegendentry{\scriptsize bound~\eqref{eq:convergence_exp_holu}}
+
+\nextgroupplot[cycle list name=list_convergence, grid=major, xlabel={\scriptsize Krylov dimension $m$}, ylabel={\scriptsize Error norm}, xmin = 0, xmax = 45, ymin = 1e-17, ymax = 1e2, ymode = log]
+
+\addplot+ table [x ={iter},y ={true}] {fig/dat/convergence_exp_kappa1e4.dat};
+\addplot+ table [x ={iter},y ={bound}] {fig/dat/convergence_exp_kappa1e4.dat};
+
+\nextgroupplot[legend columns=2, legend style={at={(.6,1.05)},anchor=south west}, cycle list name=list_convergence, grid=major, xlabel={\scriptsize Krylov dimension $m$}, ylabel={\scriptsize Error norm}, xmin = 0, xmax = 170, ymin = 1e-15, ymax = 1e2, ymode = log]
+
+\addplot+ table [x ={iter},y ={true}] {fig/dat/convergence_invsqrt_kappa1e2.dat};\addlegendentry{\scriptsize true error}
+\addplot+ table [x ={iter},y ={bound}] {fig/dat/convergence_invsqrt_kappa1e2.dat};\addlegendentry{\scriptsize bound~\eqref{eq:convergence_stieltjes}}
+
+\nextgroupplot[cycle list name=list_convergence, grid=major, xlabel={\scriptsize Krylov dimension $m$}, ylabel={\scriptsize Error norm}, xmin = 0, xmax = 255, ymin = 1e-15, ymax = 1e2, ymode = log]
+
+\addplot+ table [x ={iter},y ={true}] {fig/dat/convergence_invsqrt_kappa1e4.dat};
+\addplot+ table [x ={iter},y ={bound}] {fig/dat/convergence_invsqrt_kappa1e4.dat};
+
+\end{groupplot}
+\end{tikzpicture}

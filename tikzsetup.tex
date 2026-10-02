@@ -1,0 +1,48 @@
+\usepackage{pgfplots}
+\usepgfplotslibrary{groupplots}
+\usetikzlibrary{external}
+
+\pgfkeys{/pgf/images/include external/.code={\includegraphics{#1}}}
+
+\usetikzlibrary{decorations.markings}
+\makeatletter
+\tikzset{
+  nomorepostactions/.code={\let\tikz@postactions=\pgfutil@empty},
+  mymark/.style 2 args={decoration={markings,
+    mark= between positions 0 and 1 step (1/9)*\pgfdecoratedpathlength with{%
+        \tikzset{#2,every mark}\tikz@options
+        \pgfuseplotmark{#1}%
+      },  
+    },
+    postaction={decorate},
+    /pgfplots/legend image post style={
+        mark=#1,mark options={#2},every path/.append style={nomorepostactions}
+    },
+  },
+}
+\makeatother
+
+\pgfplotscreateplotcyclelist{list_bounds}{%
+Cerulean,line width=1.25pt, mark=*, solid, mark repeat=10\\
+BurntOrange,line width=1.25pt, mark=diamond, dashed, mark repeat=10, mark options={solid}\\
+OliveGreen,line width=1.25pt, mark=x, dashdotted, mark repeat=10, mark options={solid}\\
+Orchid,line width=1.25pt, mark=square, dashdotted, mark repeat=10, mark options={solid}\\
+BrickRed,line width=1.25pt, mark=o, dashdotted, mark repeat=10, mark options={solid}\\
+LimeGreen,line width=1.25pt, mark=triangle, dashdotted, mark repeat=10, mark options={solid}\\
+Goldenrod,line width=1.25pt, mark=pentagon, densely dotted, mark repeat=10, mark options={solid}\\
+}
+
+\pgfplotscreateplotcyclelist{list_convergence}{%
+Black,line width=1.25pt, solid\\
+BurntOrange,line width=1.25pt, dashed\\
+}
+
+
+\pgfplotsset{compat=1.17}
+
+\pgfplotsset{
+  every axis/.append style={
+    unbounded coords=jump,
+    filter discard warning=false,
+  }
+}

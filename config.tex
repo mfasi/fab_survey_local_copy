@@ -1,0 +1,191 @@
+% SIAM Shared Information Template
+% This is information that is shared between the main document and any
+% supplement. If no supplement is required, then this information can
+% be included directly in the main document.
+
+% Packages and macros go here
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{algorithmicx}
+\usepackage{amsfonts, amsmath, amsopn, amssymb}
+\usepackage[american]{babel}
+\usepackage[nameinlink]{cleveref}
+\usepackage{csquotes}
+\usepackage{enumitem}
+\usepackage{epstopdf}
+\usepackage{graphicx}
+\ifpdf
+  \DeclareGraphicsExtensions{.eps,.pdf,.png,.jpg}
+\else
+  \DeclareGraphicsExtensions{.eps}
+\fi
+\usepackage{tikz}
+% Add a serial/Oxford comma by default.
+\newcommand{\creflastconjunction}{, and~}
+
+\usepackage[normalem]{ulem}
+\usepackage[backgroundcolor=orange,textcolor=white,linecolor=gray,textsize=footnotesize]{todonotes}
+\makeatletter% 
+\@mparswitchfalse%
+\makeatother%
+\normalmarginpar%
+\setlength{\marginparwidth}{5cm}
+
+% Used for creating new theorem and remark environments
+\newsiamremark{remark}{Remark}
+\newsiamremark{hypothesis}{Hypothesis}
+\crefname{hypothesis}{Hypothesis}{Hypotheses}
+\newsiamthm{claim}{Claim}
+
+\crefname{subsection}{section}{sections}
+\Crefname{subsection}{Section}{Sections}
+\crefname{subsubsection}{section}{sections}
+\Crefname{subsubsection}{Section}{Sections}
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+%% AUTHOR INFORMATION %%
+%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{verbatim}
+\begin{comment}
+
+\newcommand{\theauthor}{Kai Bergermann}
+\newcommand{\theorcid}{0000-0002-2259-1839}
+\newcommand{\theaffiliation}{%
+Department of Mathematics,
+Technische Universität Chemnitz,
+09107 Chemnitz,
+Germany}
+\newcommand{\theemail}{kai.bergermann@math.tu-chemnitz.de}
+
+\newcommand{\theauthor}{Massimiliano Fasi}
+\newcommand{\theorcid}{0000-0002-6015-391X}
+\newcommand{\theaffiliation}{%
+School of Computing,
+University of Leeds,
+Woodhouse Lane,
+Leeds LS2 9JT,
+United Kingdom}
+\newcommand{\theemail}{m.fasi@leeds.ac.uk}
+
+\newcommand{\theauthor}{Stéphane Gaudreault}
+\newcommand{\theorcid}{0000-0002-4475-0845}
+\newcommand{\theaffiliation}{%
+Recherche en prévision numérique atmosphérique,
+Environnement et Changement climatique Canada,
+2121 Route Transcanadienne,
+Dorval, Québec, H9P 1J3,
+Canada}
+\newcommand{\theemail}{stephane.gaudreault@ec.gc.ca}
+
+\newcommand{\theauthor}{Xiaobo Liu}
+\newcommand{\theorcid}{0000-0001-8470-8388}
+\newcommand{\theaffiliation}{%
+Max Planck Institute for Dynamics of Complex Technical Systems,
+Sandtorstr.~1,
+29106 Magdeburg,
+Germany}
+\newcommand{\theemail}{xliu@mpi-magdeburg.mpg.de}
+
+\newcommand{\theauthor}{Kathryn Lund}
+\newcommand{\theorcid}{0000-0001-9851-6061}
+\newcommand{\theaffiliation}{%
+Computational Mathematics Theme,
+Scientific Computing Department,
+STFC Rutherford Appleton Laboratory,
+Didcot OX11 0QX,
+United Kingdom}
+\newcommand{\theemail}{kathryn.lund@stfc.ac.uk}
+
+\newcommand{\theathor}{Stefano Pozza}
+\newcommand{\theorcid}{0000-0003-1529-8420}
+\newcommand{\theaffiliation}{%
+Department of Numerical Mathematics,
+Faculty of Mathematics and Physics,
+Charles University,
+Sokolovsk\'a 83,
+186 75 Praha 8,
+Czechia}
+\newcommand{\theemail}{pozza@karlin.mff.cuni.cz}
+
+\newcommand{\theauthor}{Marcel Schweitzer}
+\newcommand{\theorcid}{0000-0002-4937-2855}
+\newcommand{\theaffiliation}{%
+School of Mathematics and Natural Sciences,
+Bergische Universität Wuppertal,
+42097 Wuppertal,
+Germany}
+\newcommand{\theemail}{marcel@uni-wuppertal.de}
+
+\end{comment}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% MANUSCRIPT INFORMATION %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\thetitle}{Computing the action of matrix functions%
+  \thanks{Submitted to the editors DATE. %
+    \funding{This work was funded by \dots}}}
+\newcommand{\theshorttitle}{Computing the action of matrix functions}
+\newcommand{\theshortauthor}{Short names}
+
+\newcommand{\thededication}{This work is dedicated to the memory of Nicholas J.~Higham (1961--2024).}
+
+\newcommand{\theabstract}{\todo[inline]{KL: Write abstract}}
+
+\newcommand{\theacks}{}
+
+\newcommand{\thekeywords}{matrix function times a vector, matrix functions, numerical linear algebra, iterative methods, Krylov subspace method, polynomial approximation, rational approximation}
+
+\newcommand{\themsc}{%
+  15A16, % Matrix exponential and similar functions of matrices
+  15-11, % Research data for problems pertaining to linear algebra
+  65F60, % Numerical computation of matrix exponential and similar matrix functions
+  65Y20, % Complexity and performance of numerical algorithms
+  65-11  % Research data for problems pertaining to numerical analysis
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%% COMMENTS AND TO-DOs %%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{tcolorbox}
+\newcommand{\MF}{Max}
+\tcbuselibrary{skins}
+\tcbuselibrary{breakable}
+\tcbset{shield externalize}
+\newenvironment{mf}{%
+	\list{}{\leftmargin0.2cm\rightmargin\leftmargin}\item\relax%
+	\begin{tcolorbox}[breakable, %
+		colback=Red!10!white, sharp corners, boxrule=0pt,frame hidden, %
+		enhanced, borderline west={1mm}{-2mm}{Green}]%
+		\small\sffamily{\color{Green}\textbf{\MF:}}}
+	{\end{tcolorbox}\endlist}
+
+\newcommand{\KL}{Kathryn}
+\newenvironment{kl}{%
+	\list{}{\leftmargin0.2cm\rightmargin\leftmargin}\item\relax%
+	\begin{tcolorbox}[breakable, %
+		colback=Violet!10!white, sharp corners, boxrule=0pt,frame hidden, %
+		enhanced, borderline west={1mm}{-2mm}{Violet}]%
+		\small\sffamily{\color{Violet}\textbf{\KL:}}}
+	{\end{tcolorbox}\endlist}
+
+% Other macros
+\newcommand{\ghissue}[1]{\href%
+	{https://github.com/fAbsuite/fAbsurvey/issues/#1}
+	{{issue #1}}}
+
+\def\showcomments{1}
+\ifx\showcomments\undefinded
+\usepackage{environ}
+\NewEnviron{killcontents}{}
+\let\mf\killcontents
+\let\endmf\endkillcontents
+\let\kl\killcontents
+\let\endkl\endkillcontents
+\fi
+
+%%% Local Variables:
+%%% mode:latex
+%%% TeX-master: "main"
+%%% End:

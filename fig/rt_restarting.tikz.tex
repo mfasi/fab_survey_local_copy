@@ -1,0 +1,32 @@
+\begin{tikzpicture}
+\node[draw=none,fill=none] (leftend) at (0,0) {};
+\node[draw=none,fill=none] (rightend) at (12.5,0) {};
+\node[draw=none,fill=none] (t) at (12.5,-.25){$t$};
+
+\node[draw=none,fill=none] (step0) at (0,0) {};
+\node[draw=none,fill=none] (step1) at (1.5,0) {};
+\node[draw=none,fill=none] (step2) at (4,0) {};
+\node[draw=none,fill=none] (step3) at (6.5,0) {};
+\node[draw=none,fill=none] (step4) at (9,0) {};
+\node[draw=none,fill=none] (step5) at (11.5,0) {};
+
+\node[draw=none,fill=none] (y0) at (0,-.4) {$\vb$};
+\node[draw=none,fill=none] (y1) at (1.5,-.4) {$\vu_m^{(1)}(t_0)$};
+\node[draw=none,fill=none] (y2) at (4,-.4) {$\vu_m^{(2)}(t_1)$};
+\node[draw=none,fill=none] (y3) at (6.5,-.4) {$\vu_m^{(3)}(t_2)$};
+\node[draw=none,fill=none] (y4) at (9,-.4) {$\vu_m^{(4)}(t_3)$};
+\node[draw=none,fill=none] (y5) at (11.5,-.4) {$\vu_m^{(5)}(1)$};
+
+\node[draw=none,fill=none] (plot1) at (1.5,1.5) {\includegraphics[width=2.5cm]{fig/rt_rst1.pdf}};
+\node[draw=none,fill=none] (plot2) at (4,1.5) {\includegraphics[width=2.5cm]{fig/rt_rst2.pdf}};
+\node[draw=none,fill=none] (plot3) at (6.5,1.5) {\includegraphics[width=2.5cm]{fig/rt_rst3.pdf}};
+\node[draw=none,fill=none] (plot4) at (9,1.5) {\includegraphics[width=2.5cm]{fig/rt_rst4.pdf}};
+\node[draw=none,fill=none] (plot5) at (11.25,1.5) {\includegraphics[width=2.5cm]{fig/rt_rst5.pdf}};
+
+\draw[black, very thick,-latex] (leftend) -- (rightend);
+\draw[black, very thick,-latex,dashed] (step0) to[bend left] (step1);
+\draw[black, very thick,-latex,dashed] (step1) to[bend left] (step2);
+\draw[black, very thick,-latex,dashed] (step2) to[bend left] (step3);
+\draw[black, very thick,-latex,dashed] (step3) to[bend left] (step4);
+\draw[black, very thick,-latex,dashed] (step4) to[bend left] (step5);
+\end{tikzpicture}
