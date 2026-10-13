@@ -92,51 +92,50 @@
     \themsc
 \end{MSCcodes}
 
-\todo[inline]{Dedication}
-
-\todo[inline]{KL: HOW DOES \cite{HigK17} FIT IN OUR SURVEY?!  POWERING AND SCALING APPROACH?!}
+\todo[inline]{MF, XL: Dedication to Nick}
 
 \section{Introduction} \label{sec:intro}
-\todo[inline]{KL: Write intro}
 
+The computation of a function of a matrix $f(A)$ poses interesting intellectual and mathematical challenges.  There is something fantastical about taking a scalar function and redefining it on a matrix.  Why should that make any sense?  Is it satisfying to see that not only does it make much sense, it is also necessary for a dizzying array of applications in scientific computing.  Higham's elegant treatment in the 2008 monograph \emph{Functions of Matrices} gave $f(A)$ the attention it deserves and ushered a generation of new initiates into the mysteries of matrix functions \cite{high:FM}.
+
+Nearly two decades later, we attempt to summarize the progress since Higham's seminal work, paying particular attention to the computation of the \emph{action} of $f(A)$ on a vector $\vb$.  To date, no comprehensive treatment of $f(A)\vb$ exists.   Higham's own work devotes just one chapter to $f(A)\vb$ (\cite[Chapter~13]{high:FM}); in the same year, a short survey was published by Frommer and Simoncini \cite{frsi08}, and in 2020, a short survey on limited-memory methods was published \cite{gkl20}.  Other notable work includes the pair of ``Nineteen Dubious Ways to Compute the Exponential of a Matrix" papers, but only the most recent iteration includes Krylov subspaces as a method and otherwise provides no further advice on computing the action of the matrix exponential \cite{Molv78, Molv03}.
+
+This omission is all the more glaring because of the stark differences in computational approaches for $f(A)$ and $f(A)\vb$. At first glance, computing $f(A)\vb$ may seem like nothing more than a two-step process: first evaluate the matrix function $f(A)$, then multiply the resulting matrix by $\vb$. This perspective, while mathematically valid, obscures a fundamental distinction that has profound consequences in practice. In numerical linear algebra, computing $f(A)$ and computing $f(A)\vb$ are two genuinely different tasks, and conflating them leads to algorithms that are, in many realistic settings, entirely impractical.
+
+For large-scale problems, the most immediate obstacle to forming $f(A)$ explicitly is memory. Computing $f(A)$ means producing and storing a full $n \times n$ matrix, whereas $f(A)\vb$ only requires an $n$-dimensional vector. In many applications, the matrix $A$ is large and sparse, but $f(A)$ is generally dense. Even when $A$ is banded or otherwise structured, $f(A)$ typically fills in, and storing the result requires $\mathcal{O}(n^2)$ memory. For the problem sizes that arise in modern scientific computing, this is practically infeasible. Algorithms that compute $f(A)\vb$ directly circumvent the memory bottleneck by using iterative, often \emph{matrix-free} techniques: they access $A$ only through matrix-vector products and never form $f(A)$ explicitly. 
+
+While any algorithm for $f(A)$ can in principle be followed by a multiplication by $\vb$, doing so is unduly expensive and entirely unnecessary. Forming the full matrix function costs at best $\mathcal{O}(n^3)$, whereas many of the algorithms discussed in this survey approximate $f(A)\vb$ at a cost that is a more modest multiple of $n$, provided $A$ is sparse. The gap between these two regimes can be enormous for realistic problem sizes.
+
+Beyond memory and cost, the two problems also differ in their current state of development. The computation of $f(A)$ is a relatively mature area, supported by authoritative textbooks~\cite{high:FM},~\cite[Chap.~6]{hojo91},~\cite[Chap.~9]{gova13}, comprehensive software catalogs~\cite{hiho20}, and robust implementations that can be used with minimal configuration, such as the built-in \texttt{expm}, \texttt{sqrtm}, and \texttt{logm} in MATLAB. The computation of $f(A)\vb$, while sharing some theoretical foundations with the full matrix function case, is less uniformly developed: the available algorithms are more diverse, still research prototypes, and often require user expertise to tune parameters appropriately. One goal of this survey is to provide a comprehensive and up-to-date picture of the state of the art in this area, making it accessible to scientists and engineers who encounter $f(A)\vb$ in the wild and need guidance on which methods to use and how. \todo[inline]{KL: Mention \cite{fgls24, hial10}}
+
+\subsection{Things not in this survey} \label{sec:not_in_survey}
+
+Composing a survey on the topic of $f(A)\vb$ has proven to be a massive undertaking.  To stay within scope, we have intentionally and sometimes contentiously chosen to omit some topics.  A list of them follows.
 \begin{itemize}
-    \item To this date, no existing survey on $f(A)\vb$ methods.  All we've got is \cite[Chapter~13]{high:FM} and \cite{frsi08} and \cite{gkl20}, none of them complete.  Despite its popularity, ``Nineteen Dubious Ways... 25 years later" tags on Krylov as a method, but doesn't do it justice \cite{Molv03}.  Chen gives a shout-out in \cite{Che24a}, and we laud the attempt to bridge the gap between practioners and numerical analysts.
-    \item Things we don't discuss:
-    \begin{itemize}
-        \item Things that only apply to $f(z) = z^\inv$ or polynomials in $A$
-        \item Bivariate matrix functions \cite{Kre14, Kre19} and Fr\'echet derivatives~\cite[Section~3]{high:FM}, \cite{kkrs21,math92}
-        \item Conditioning of $f(A)$ or $f(A)\vb$; go look at \cite{Dea15}
-        \item Generalized matrix functions~\cite{abf16,habe73}
-        \item $f(A)\vx = \vb$ \cite{van87, Hon18}
-    \end{itemize}
+    \item \emph{Exponential integration.} While this is an extremely active and salient application of $\exp(A)\vb$, the topic itself deserves its own survey.  Indeed, some of our authors are concurrently working on it \cite{expo-int}. \todo[inline]{Cite expo-int survey as in progress -- just need working title and author list}
+    \item \emph{$f(z) = \frac{1}{z - s}$.} This is equivalent to solving a linear system $(A - sI) \vx = \vb$, which is itself a massive field upon which methods for $f(A)\vb$ rely.  As a first but certainly not exhaustive step, we would direct the reader to Saad's book~\cite{saad03}.
+    \item \emph{$f(z) = \sum_{k = 1}^N c_k z^k$.} While matrix polynomials (with scalar or matrix coefficients) form an important backbone in the analysis of many $f(A)\vb$ methods, we do not address here how to efficiently compute polynomials of $A$.  See \cite{GohLR09} or \cite[Chapter~18]{high:FM}.
+    \item \emph{$f(A)\vx = \vb$} Despite being an enticing problem in and of itself, this remains out of scope; see \cite{van87, Hon18}.
+    \item \emph{Bivariate matrix functions.} Functions of two matrices are fabulous creatures indeed; see work by Kressner for further reading \cite{Kre14, Kre19}.
+    \item \emph{Fr\'echet derivatives.} Although Fr\'echet derivatives are important for the development of condition numbers for $f(A)\vb$, they are well addressed by other work.  See~\cite[Section~3]{high:FM}, as well as \cite{kkrs21,math92}.
+    \item \emph{Conditioning of $f(A)\vb$.} The conditioning, sensitivity, and numerical stability analysis of $f(A)\vb$ remain out of scope for this survey.  See Deadman's work for the condition number of $f(A)\vb$~\cite{Dea15}.
+    \item \emph{Generalized matrix functions.} These are computed very differently from either $f(A)$ or $f(A)\vb$, as they are defined in term of the singular value decomposition of $A$.  See~\cite{abf16,habe73}.
 \end{itemize}
 
-\todo[inline]{Make list of our contributions}
-\todo[inline]{KL: Turn list into paragraph}
-\begin{itemize}
-    \item First real survey on $f(A)\vb$ (and boy, are we thorough, look at those 300+ references)
-    \item Clean taxonomy of $f(A)\vb$ approaches
-    \item Generalization of Leja methods to non-expo functions: \ref{sec:leja_interp}
-\end{itemize}
+\subsection{Our contributions}
 
-The survey is organized as follows. We begin by summarizing essential definitions and results from analysis and linear algebra in \Cref{sec:foundations}, which experienced readers can comfortably skip.  In \Cref{sec:applications}, we discuss a wide range of diverse applications where $\fAb$ arises. We then provide a high-level overview of different classes of methods for computing $\fAb$. \Cref{sec:fA_fixed_apriori} focuses on methods that rely on pre-computed polynomial and rational approximations. After that, we cover iterative Krylov subspace methods that build such an approximation on the fly, with \Cref{sec:fA_polynomial_krylov} focusing on polynomial and \Cref{sec:fA_rational_krylov} on rational Krylov methods. In Section~\ref{sec:structured}, we give an overview of methods for different kinds of structured matrices, in particular Kronecker-structured and hierarchical matrices, as well as Toeplitz matrices. We summarize our conclusions and outlook for future research directions in \Cref{sec:conclusions}. \todo[inline]{KL: Mention \cite{fgls24, hial10}}
+As already argued, this survey is the first of its kind on the topic of computing the action of a matrix function.  It is our intention that this work is more than just a list of references; we have also endeavored to provide a straightforward taxonomy for the zoo of $f(A)\vb$, which itself is valuable for software engineers designing modular workflows.  In \Cref{sec:leja_interp}, we also generalized L\'eja methods to non-exponential functions, which is a new result to the best of our knowledge.  We also informally expand the University of Manchester software catalogue for matrix functions methods in \Cref{sec:software}, which was last updated in 2020 \cite{hiho20}.
 
-\subsection{The difference between computing $f(A)$ and its action on a vector} \label{sec:fA_v_fAb}
+\todo[inline]{Revisit this section at the end -- maybe even ask (a private, firewalled) GenAI to read through the paper and suggest other novelties we have potentially overlooked}
 
-At first glance, computing $f(A)\vb$ may seem like nothing more than a two-step process: first evaluate the matrix function $f(A)$, then multiply the resulting matrix by $\vb$. This perspective, while mathematically valid, obscures a fundamental distinction that has profound consequences in practice. In numerical linear algebra, computing $f(A)$ and computing $f(A)\vb$ are two genuinely different tasks, and conflating them leads to algorithms that are, in many realistic settings, entirely impractical.
+The survey is organized as follows. We begin by summarizing essential definitions and results from analysis and linear algebra in \Cref{sec:foundations}, which experienced readers can comfortably skip.  In \Cref{sec:applications}, we discuss a wide range of diverse applications where $\fAb$ arises. We then provide a high-level overview of different classes of methods for computing $\fAb$. \Cref{sec:fA_fixed_apriori} focuses on methods that rely on pre-computed polynomial and rational approximations. After that, we cover iterative Krylov subspace methods that build such an approximation on the fly, with \Cref{sec:fA_polynomial_krylov} focusing on polynomial and \Cref{sec:fA_rational_krylov} on rational Krylov methods. 
+\todo[inline]{Several sections coming after Sec.~6 are missing in this summary.}
+In Section~\ref{sec:structured}, we give an overview of methods for different kinds of structured matrices, in particular Kronecker-structured and hierarchical matrices, as well as Toeplitz matrices. We summarize our conclusions and outlook for future research directions in \Cref{sec:conclusions}.
 
-For large-scale problems, the most immediate obstacle to forming $f(A)$ explicitly is memory. Computing $f(A)$ means producing and storing a full $n \times n$ matrix, whereas $f(A)\vb$ only requires an $n$-dimensional vector. In many applications, the matrix $A$ is large and sparse, but $f(A)$ is in general dense. Even when $A$ is banded or otherwise structured, $f(A)$ typically fills in, and storing the result requires $\mathcal{O}(n^2)$ memory. For the problem sizes that arise in modern scientific computing, this is simply infeasible. Algorithms that compute $f(A)\vb$ directly circumvent this bottleneck by using iterative, \emph{matrix-free} techniques: they access $A$ only through matrix-vector products and never form $f(A)$ explicitly. 
-
-While any algorithm for $f(A)$ can in principle be followed by a multiplication by $\vb$, doing so is unduly expensive and entirely unnecessary. Forming the full matrix function costs at best $\mathcal{O}(n^3)$, whereas many of the algorithms discuassed in this survey approximate $f(A)\vb$ at a cost that is a more modest multiple of $n$, provided $A$ is sparse. The gap between these two regimes can be enormous in practice.
-
-Beyond memory and cost, the two problems also differ in their current state of development. The computation of $f(A)$ is a relatively mature area, supported by authoritative textbooks~\cite{high:FM},~\cite[Chap.~6]{hojo91},~\cite[Chap.~9]{gova13}, comprehensive software catalogs~\cite{hiho20}, and robust implementations that can be used with minimal configuration; see \Cref{sec:software} for a brief overview of representative state-of-the-art methods. The computation of $f(A)\vb$, while sharing some theoretical foundations with the full matrix function case, is less uniformly developed: the available algorithms are more diverse, and often require user expertise to tune parameters appropriately. One goal of this survey is to provide a comprehensive and up-to-date picture of the state of the art in this area, making it accessible to scientists and engineers who encounter $f(A)\vb$ in their applications and need guidance on which methods to use and how.
-
-\todo{SP: I suggest to add a subsection on the difference between the Hermitian and non-Hermitian case.  KL: We'll add a paragraph/subsection each in Sections 4 and 5}
+\section{Technical foundations} \label{sec:foundations}
 
 \subsection{Notation} \label{sec:notation}
 \todo[inline]{KL: Summarize notation}
-
-\section{Technical foundations} \label{sec:foundations}
 
 \subsection{Definitions} \label{sec:definitions}
 
@@ -347,7 +346,7 @@ The \emph{field of values} (or \emph{numerical range}) of a matrix $A$ is the se
 Clearly, the field of values is a superset of the spectrum, $\sigma(A) \subseteq \mathcal{W}(A)$, and by the Hausdorff--Toeplitz theorem it is convex and compact. Further, if $A$ is normal, the field of values is the convex hull of $\sigma(A)$. As a special case, when $A$ is Hermitian with smallest and largest eigenvalue $\lmin$ and $\lmax$, respectively, the field of values reduces to the spectral interval $\mathcal{W}(A) = [\lmin,\lmax].$ 
 
 The importance of the field of values for theory and computation of matrix functions is rooted in the fact that the behavior of the \emph{scalar} function $f$ on $\mathcal{W}(A)$ determines the behavior of $f(A)$ in the sense of the following theorem by Crouzeix and Palencia; see~\cite[Theorem~3.1]{crpa17}.
-
+\todo{SP: conjecture proved \cite{losc26}}
 \begin{theorem}\label{thm:crouzeix_palencia}
 Let $A \in \spC^{n \times n}$ and let $f$ be holomorphic on an open set $\Omega \supseteq \mathcal{W}(A)$. Then
 \[
@@ -713,6 +712,9 @@ Finally, Shift-and-Invert Krylov methods have been applied within exponential in
 
 In applications where one seeks to compute $f(A)\vb$---such as those presented in \Cref{sec:applications} above---the matrix $A$ is typically large and sparse (or otherwise structured). The main operations that can be efficiently performed with it are therefore matrix-vector products, and possibly linear system solves. These therefore form the backbone of essentially \emph{any} algorithm for approximating $f(A)\vb$, which naturally leads to polynomial or rational approximations.
 
+\todo[inline]{KL: Put \cite{HigK17} in its home somewhere here}
+\todo[inline]{XL: Done, I will also check a couple of other papers by Nick and coauthors that might need to be mentioned in the following section}
+
 \subsection{Polynomial approximations}\label{sec:fixed_polynomial_approximation}
 We begin by reviewing methods based on polynomial approximations, which only require matrix-vector products with $A$. An attractive feature of these methods is that they are often rather easy to implement and are rather straightforward to efficiently parallelize on high-performance computing architectures, as they do not require inner products, which would introduce global synchronization points; see also~\Cref{sec:hpc} below.
 
@@ -747,6 +749,9 @@ Recently, Al-Mohy~\cite{almo25} has proposed and extension of this line of work 
 \end{equation*}
 which are a generalization of~\eqref{eq:ansatz}.
 The method combines a scaling-and-recovering algorithm that uses a truncated Taylor series, but differs from the strategy in~\cite{alhi11} in the choice of shift: rather than using $\trace(A)/n$, which is not available in a matrix-free setting, the algorithm chooses a spectral shift by minimizing a power-based objective function involving $(A - \xi I)^m b$. The resulting scaling parameter is then used, together with an adaptive strategy to truncate the Taylor series, to guarantee a used-specified accuracy within the limits of the working precision. Al-Mohy also proposes a block version that decouples the asbsissae $t_i$ from the polynomial weights $\alpha_{ji}$, allowing the simultaneous evaluation of several independent stages.
+
+Building on the backward error analysis of the matrix exponential~\cite{alhi11}, algorithms based on truncated Taylor series have been developed for computing the action of trigonometric and hyperbolic matrix functions~\cite{HigK17}.
+
 
 \subsubsection{Chebyshev approximation}\label{sec:chebyshev}
 Another way to efficiently construct polynomial approximations for $f(A)\vb$ is via \emph{Chebyshev polynomials}. An in-depth treatment of Chebyshev polynomials and their approximation properties is given in~\cite{Tre13}, andw e only brief\/ly review the most important practical aspects in the context of matrix function computations here.
@@ -867,7 +872,7 @@ for some small parameter $a$.
 
 Just as the Chebyshev approximation considered in~\Cref{sec:chebyshev}, the least squares polynomial approach requires an estimate of the spectral interval of $A$ to be available (or cheaply computable). If this is the case, the experiments reported in~\cite{cas11} suggest that convergence of the approximation~\eqref{eq:least_squares_approx_f_2} can be expected to have roughly the same rate as a restarted Krylov subspace method (see also~\Cref{sec:restarting} below), with the advantage of not requiring inner products, leading to a smaller run time.
 
-\subsubsection{Léja Interpolation} \label{sec:leja_interp}
+\subsubsection{Léja interpolation} \label{sec:leja_interp}
 \todo[inline]{SP: should we refer also to \cite{Nov03} as a similar approach?}
 The Léja interpolation method is a polynomial approximation technique for computing $\fAb$ that occupies a distinct niche among the methods discussed in this survey. Like the Chebyshev approach in \Cref{sec:chebyshev}, it relies on a prior estimate of the spectral region of $A$ and constructs an explicit polynomial approximation of $f$ over that region. However, it does not require the spectrum to lie on a real interval, which makes it applicable to nonsymmetric and nonnormal matrices. Unlike Krylov subspace methods, the polynomial is fully determined in advance from the divided differences of $f$ evaluated at the Léja points, independently of $A$. The matrix only enters during evaluation through matrix--vector products. 
 
@@ -1019,6 +1024,8 @@ Both formulae yield positive definite shifted linear systems in~\eqref{eq:weight
 The convergence speed of these formulae is governed by the spectrum of the Hermitian positive definite matrix $A^{1/2}B^{-1}A^{1/2}$.
 They also adapts the conformal-map quadrature of Hale--Higham--Trefethen for fractional powers, which can converge very rapidly but may require non-Hermitian or non-positive definite shifted systems for $t \neq 1/2$.
 
+\todo{SP: I suggest to add a subsection on the difference between the Hermitian and non-Hermitian case.  KL: Please add a paragraph/subsection each in Sections 4 and 5, where you think it fits best.}
+
 \section{Polynomial Krylov subspace methods} \label{sec:fA_polynomial_krylov}
 % Focus on things that must be adapted to $\fAb$ here
 \todo[inline]{Mention \cite{ita08} somewhere here?}
@@ -1061,7 +1068,6 @@ yielding the so-called \emph{Arnoldi approximation} for $f(A)\vb$. In particular
 When the matrix $A$ is Hermitian, the Krylov basis vectors $\vv_1,\dots,\vv_m$ fulfill a three-term recurrence, and Arnoldi's method turns into the short-recurrence \emph{Lanczos process}~\cite{lanc50}. In this case, the matrix $H_m$ is tridiagonal and the approximation~\eqref{eq:arnoldi_approximation} is referred to as \emph{Lanczos approximation}.
 
 \subsubsection{Convergence rate of the Arnoldi and Lanczos approximation}\label{sec:convergence_polynomial}
-\todo[inline]{SP: add convergence bounds in \cite{chpe26}? a priori and a posteriori error bounds based on the behavior of a shifted linear system}
 It is of course important to be able to quantify by how much the Arnoldi and Lanczos approximation can differ from the sought-after vector $f(A)\vb$. A first important feature of the approximation~\eqref{eq:arnoldi_approximation} is that it is \emph{exact} when $f$ is a polynomial of degree at most $m-1$, i.e., in that case it holds $\vf_m = f(A)\vb$; see~\cite[Lemma~3.1]{saad92}. This exactness result forms the basis of many convergence results, and it also allows to find the following characterization of the Arnoldi approximation.
 
 \begin{theorem}[Theorem~4.3 in~\cite{eric90}, Theorem~3.3 in~\cite{saad92}]\label{thm:arnoldi_interpolation_characterization}
@@ -1076,14 +1082,15 @@ Thus, just as $f(A)\vb$ itself (cf.~\Cref{def:matrix_function_interpolation}), t
 
 A remarkable property of the Arnoldi approximation that can be concluded from~\Cref{thm:arnoldi_interpolation_characterization} is that once the Krylov subspace $\spK_m(A,\vb)$ becomes invariant under $A$, the Arnoldi approximation~\eqref{eq:arnoldi_approximation} coincides with $f(A)\vb$. Thus, the Arnoldi method is guaranteed to terminate after at most $n$ iterations (at least in exact arithmetic).
 
-Another important consequence of~\Cref{thm:arnoldi_interpolation_characterization} and the Crouzeix-Palencia theorem~\cite{crpa17} is given in~\cite[Proposition~3.1]{bere09}, which relates the error of the Arnoldi approximation to the error of polynomial approximations for the scalar function $f$. This property is known as the \emph{quasi-optimality of the Arnoldi approximation}. Note that the original result in~\cite{bere09} involves a larger constant as it relied on an earlier result by Crouzeix~\cite{crou07} instead of the refined bound from~\cite{crpa17}.
+Another important consequence of~\Cref{thm:arnoldi_interpolation_characterization} and the Crouzeix-Palencia theorem~\cite{crpa17} \todo{SP: I am not sure if this part must be updated given that the conjecture is now proved}
+is given in~\cite[Proposition~3.1]{bere09}, which relates the error of the Arnoldi approximation to the error of polynomial approximations for the scalar function $f$. This property is known as the \emph{quasi-optimality of the Arnoldi approximation}. Note that the original result in~\cite{bere09} involves a larger constant as it relied on an earlier result by Crouzeix~\cite{crou07} instead of the recently proven Crouzeix's conjecture~\cite{losc26}. %~\cite{crpa17}.
 
 \begin{theorem}\label{thm:quasioptimality}
 Let $A \in \spC^{n \times n}, \vb \in \spC^n$, let $f$ be defined on the spectrum of $A$ and $H_m$ from~\eqref{eq:arnoldi_relation}. Then
 \begin{equation}\label{eq:quasioptimality}
 \|f(A)\vb-\vf_m\| \leq 2K\|\vb\| \min_{p \in \Pi_{m-1}}\max_{z \in \mathcal{W}(A)} |f(z)-p(z)|,
 \end{equation}
-where $K = 1$ if $A$ is normal and $K = 1+\sqrt{2}$ otherwise. \todo{SP: Isn't this $2$ now that the C. conjecture was proved?}
+where $K = 1$ if $A$ is normal and $K = 2$ otherwise.
 \end{theorem}
 It is worth mentioning that there also exist earlier results relating the convergence of the Arnoldi approximation to certain polynomial approximation problems, most notably~\cite{drkn89,drkn95,tal-89}.
 
@@ -1148,7 +1155,7 @@ in the Euclidean norm, where $\kappa$ is the condition number of $A$. Such an in
 %\|f(A)\vb-\vf_m\| \leq \left(1+\kappa^2\right) \min_{\vx \in \spK_m(A,\vb)}\|f(A)\vb-\vx\|
 %\end{equation}
 %when $f$ is either a Stieltjes function or of the form $f(z) = zg(z)$ with $g$ a Stieltjes function, and it is conjectured that the constant $1+\kappa^2$ is likely not optimal. 
-\todo{SP: I've updated this part} For an Hermitian positive definite matrix $A$ and a function $f$ that is either a Stieltjes function or of the form $f(z) = zg(z)$ with $g$ a Stieltjes function, it was recently shown in~\cite[Theorem 1]{chpe26} that for every $\alpha \in \mathbb{R}$, setting $E := \max\{\alpha, 1-\alpha\}$, it holds: 
+\todo{SP: I've updated it from here to the end of the section} For an Hermitian positive definite matrix $A$ and a function $f$ that is either a Stieltjes function or of the form $f(z) = zg(z)$ with $g$ a Stieltjes function, it was recently shown in~\cite[Theorem 1]{chpe26} that for every $\alpha \in \mathbb{R}$, setting $E := \max\{\alpha, 1-\alpha\}$, it holds: 
 \begin{equation}\label{eq:opt:quasiopt}
 \|f(A)\vb-\vf_m\|_{A^{\alpha}} \leq  \frac{1}{2}\left( \kappa^{E/2} + \kappa^{-E/2} \right) \min_{\vx \in \spK_m(A,\vb)}\|f(A)\vb-\vx\|.
 \end{equation}
@@ -1157,7 +1164,7 @@ Note that for $\alpha = 0$ the bound holds for the Euclidean norm with $E = 1$.
 This result improves the bound given for the Euclidean norm in~\cite[Theorem~3.1]{schw25} where the constant is $(1+\kappa^2)$.
 Other similar guarantees are given in~\cite{dgk98} for the exponential function and in~\cite{acgm23} for rational functions; both of these results are not near-instance optimality results in the strict sense, though, as they bound the error of the $m$th Lanczos approximation $\vf_m$ by the best approximation from an earlier Krylov subspace $\spK_k(A,\vb), k < m$.
 
-An important consequence of a near instance optimality guarantee is that it allows to study the convergence behavior of the Lanczos method based on polynomial approximation on the discrete set of eigenvalues of $A$ instead of on the continuous spectral interval. \todo{SP: I replaced field of values with spectral interval, less confusing since the matrix is Hermitian} 
+An important consequence of a near instance optimality guarantee is that it allows to study the convergence behavior of the Lanczos method based on polynomial approximation on the discrete set of eigenvalues of $A$ instead of on the continuous spectral interval. 
 In fact, inequality~\eqref{eq:opt:quasiopt} directly implies
 \begin{equation}\label{eq:near_spectrum_optimality}
 \|f(A)\vb-\vf_m\| \leq \frac{1}{2}\left(\sqrt{\kappa}+ \frac{1}{\sqrt{\kappa}}\right) \min_{p \in \Pi_{m-1}} \max_{\lambda \in \spec(A)} |f(\lambda)-p(\lambda)|.
@@ -1168,8 +1175,6 @@ This is in line with numerical evidence which clearly suggests that not only the
 
 
 In~\cite{chme24}, near-optimality of the full orthogonalization method for linear systems is investigated, and it is conjectured that similar results are also possible for the Arnoldi method for $f(A)\vb$.
-
-\todo{SP: I suggest to add a part about optimality in terms of Gauss quadrature and moment matching. There are new developments on this since Golub and Meurant book, and, moreover, it will be useful in the stopping criteria part later. I can work on it since I wrote my PhD thesis on this.}
 
 
 \subsubsection{Computational cost and memory requirements}\label{sec:krylov_cost_memory}
@@ -1182,7 +1187,6 @@ Another possible problem arises from the fact that evaluating~\eqref{eq:arnoldi_
 There are two possible remedies for these issues. Either, one uses other approximation spaces with more powerful approximation properties, as, e.g., \emph{rational} Krylov subspaces, so that fewer iterations are necessary to reach a satisfactory accuracy, or one resorts to methods which reduce the orthogonalization cost and memory requirements, e.g., by using truncated orthogonalization, restarts or randomization. In the remainder of this section, we discuss techniques of the latter type in detail, together with other possible enhancements and extensions of polynomial Krylov methods. Rational Krylov methods are discussed in \Cref{sec:fA_rational_krylov} below.
 
 \subsubsection{Behavior of the Lanczos method in finite precision arithmetic}\label{sec:lanczos_finite_precision}
-\todo[inline]{SP: I am still working on it.}
 
 
 As noted, e.g., in \cite{cgmm22}, the Lanczos approximation $\vf_m$ may behave drastically differently in finite precision arithmetic (FPA). It can display a \emph{convergence delay}, i.e., more iterations are needed to reach a given accuracy than in exact arithmetic, and a \emph{reduced maximal attainable accuracy}. Consequently, upper bounds derived in exact arithmetic cannot in general be trusted without first being analyzed in FPA.
@@ -1190,7 +1194,7 @@ The behavior of the Lanczos method in FPA is understood through the \emph{loss o
 
 The effects of rounding errors on $\vf_m$ have been analyzed for some matrix functions in \cite{dgk98} (see also \cite{drkn95}). 
 More recently in \cite{mms18}, the error of $\vf_m$ was bounded in FPA, up to a factor of order $m$ and a small additive term, by the error of the best degree-$(m-1)$ polynomial approximation of $f$ in the uniform norm on an perturbed interval containing the spectrum of $A$.
-A more refined analysis, valid for functions analytic in a neighborhood of the eigenvalues of $A$ and of the tridiagonal matrix $H_m$ computed by Lanczos method in FPA, was given in \cite[Section~5]{cgmm22}. Let $w\in\mathbb{R}$ be a shift not in the spectra of $A$ and $H_m$, and let $\Gamma$ be a union of simple closed curves enclosing these spectra and contained in that neighborhood. Then the following bound holds\footnote{Note that \cite[p.~802]{cgmm22} contains a minor misprint in the bound, which is corrected in \eqref{eq:fpa:bound}.}:
+A more refined analysis, valid for functions analytic in a neighborhood of the eigenvalues of $A$ and of the tridiagonal matrix $H_m$ computed by Lanczos method in FPA, was given in \cite[Section~5]{cgmm22}. Let $w\in\mathbb{R}$ be a shift not in the spectra of $A$ and $H_m$, and let $\Gamma$ be a union of simple closed curves enclosing these spectra and contained in that neighborhood. Then the following bound holds\footnote{Note that \cite[p.~802]{cgmm22} contains a misprint in the bound.}:
 \begin{equation}\label{eq:fpa:bound}
 \begin{split}
 \|f(A)\mathbf{b} - \vf_m\| 
@@ -1215,7 +1219,7 @@ We refer also to \cite{ch26}, where Chen presented a description of the analyses
 
 Building on these results, Greenbaum \cite{gr89,gr97} showed that, despite the loss of orthogonality in $V_m$, convergence still occurs for linear systems, i.e., $f(x)=1/x$; see also the results for the Conjugate Gradient method \cite{grst92,mest06,list13,calist24}. Moreover, the upper bounds derived in exact arithmetic are not lost but must be applied to the perturbed problem with matrix $\tilde A$. This backward analysis can then explain the convergence delay for linear systems and, through \eqref{eq:fpa:bound}, for matrix functions, whose error is controlled by the FPA error of a single shifted linear system.
 
-Finally, we point out a close connection between the Lanczos approximation $\vf_m$ and Gauss--Christoffel quadrature \cite{gome10}: both are determined by the same tridiagonal matrix $H_m$, so the sensitivity of $\vf_m$ to perturbations in FPA is closely related to the sensitivity of the Gauss quadrature \cite{olstti07}. This connection also plays a role in understanding the $A$-norm of the error of the Conjugate Gradient method \cite{kn96,stti02,list13}.
+Finally, we point out a close connection between the Lanczos approximation $\vf_m$ and Gauss quadrature \cite{gome10} (see Sections~\ref{sec:errest_integration_quadrature} and \ref{sec:bilinear_form}): both are determined by the same tridiagonal matrix $H_m$, so the sensitivity of $\vf_m$ to perturbations in FPA is closely related to the sensitivity of the Gauss quadrature \cite{olstti07}. %This connection also plays a role in understanding the $A$-norm of the error of the Conjugate Gradient method \cite{kn96,stti02,list13}.
 
 
 
@@ -1377,7 +1381,7 @@ This bound fully decouples the ``integral part'' (in parentheses) from the ``lin
 For the integral part, note that $\|h_{w,z}(A)\|$ can be estimated cheaply as long as (an estimate of) the spectral interval of $A$ is available and that $|\det(h_{w,z}(H_m))|$ can be computed easily from the Ritz values. After choosing a suitable contour $\Gamma$, the integral part can thus be approximated at a reasonable cost using a numerical quadrature rule. The linear system error $\|\err_m(w)\|$ can be bounded or estimated using established a priori or a posteriori bounds for linear systems. Depending on the choice of $\Gamma$, the quadrature rule and the linear system estimator, different specific bounds arise, and we refer the reader to~\cite{cgmm22} for an in-depth discussion and technical details. Two examples for how to use this approach in practice are presented in the comparisons we report in \Cref{sec:comparison_err_est} below.
 
 In~\cite{xuch24}, it is discussed how the techniques above can be extended to the \emph{block} Lanczos method, and~\cite{ahpx25} presents an extension to the non-Hermitian setting as well as a slight refinement of results for the matrix square root.
-
+\todo{SP: maybe this can be added somewhere here below \cite{alprre24}?}
 An alternative approach for obtaining both upper and lower bounds for the Lanczos error is developed in~\cite{frsc16,fklr13}, based on earlier work for linear systems in~\cite{gome93,gome97,gome10}. Given any error function representation of the form $f(A)\vb - \vf_m = e_m(A)\vv_{m+1}$, one can write
 \begin{equation}\label{eq:err_quadratic_form}
 \|f(A)\vb - \vf_m\|^2 = \vv_{m+1}^H (e_m(A))^2 \vv_{m+1},
@@ -1925,7 +1929,7 @@ The concept was first introduced by Ruhe in $1984$ in the context of eigenvalue 
  	If $A$ is Hermitian, the result holds even with $K = 1$ and $\Sigma \supseteq \Lambda(A) \cup \Lambda(V_m^H A V_m)$.
  \end{theorem}
 
- \todo[inline]{KB: I would like to expand this list of pointers to the literature on rational Krylov error analysis into some mathematical content (ahe approaches based on error bounds from \Cref{sec:fA_rational_krylov_poles_prior} may also have to be mentioned here))}
+ \todo[inline]{KB: to be checked whether the listed references and approaches based on error bounds from \Cref{sec:fA_rational_krylov_poles_prior} should be treated in more detail here}
  Several error bounds and estimates for the rational Krylov approximation to $f(A)\vb$ \eqref{eq:rat_arnoldi_approximation} are available in the literature, typically restricted to specific function classes.
  For the matrix exponential function, rational Krylov error expansion and estimate analogues to \eqref{eq:error_expansion_exponential_saad} and \eqref{eq:error_estimate_exponential_saad} in the polynomial Krylov case have been derived for general poles and matrices \cite{best24}.
  For matrix $\varphi$-functions, error estimates for rational Krylov methods whose equidistant poles share the same real part have been proposed for negative semi-definite matrices \cite{goc14,gogr14}.
@@ -2125,10 +2129,11 @@ A rigorous treatment for inexact rational Krylov methods for general matrix func
 It also comes to the conclusion that the inner linear system tolerance may be chosen inversely proportionally to the outer matrix function error without adversely affecting the convergence of matrix function approximation.
 Clearly, such inexact approaches carry the potential for reducing the dominating cost of linear system solves in rational Krylov methods in later iterations as the accuracy of the outer iteration increases.
 
+\section{Non-Krylov iterative methods} \cite{sec:non_krylov}
 
-\section{Bilinear forms}
-\todo[inline]{SP: working in progress.  Potential sources to mention: \cite{BenEJ20, ReiRT16, Mar12, ZimDS24}}
 
+
+\section{Bilinear forms} \label{sec:bilinear_form}
 As we have seen in Sections~\ref{sec:complex_networks} and~\ref{sec:fA_kernel}, many applications require the computation of bilinear forms of the kind
 \[
 \vb^H f(A)\,\vb.
@@ -2137,11 +2142,11 @@ Although this problem may appear to be a trivial application of the techniques d
 \begin{itemize}
   \item methods based on short recurrences, such as the Lanczos algorithm, can be used to approximate $\vb^H f(A)\vb$ with low memory requirements, since the basis vectors need not be stored;
   \item optimality properties, such as exactness for polynomials of higher degree and sharper error bounds, can hold for $\vb^H f(A)\vb$ to a greater extent than for $f(A)\vb$;
-  \item the behavior of algorithms in finite precision can differ when they are applied to bilinear forms rather than to $f(A)\vb$.
+  \item the behavior of algorithms in finite precision can differ when they are applied to bilinear forms rather than to $f(A)\vb$; see \cite{stti11} for $f(x) = x^{-1}$.
 \end{itemize}
-When $A$ is Hermitian, Golub and Meurant showed in~\cite{gome10,gome93} that the Lanczos approximation of $\vb^H f(A)\vb$ corresponds to an $m$-point Gauss quadrature rule. This classical result follows from two observations. First, the bilinear form is a Riemann--Stieltjes integral with respect to the spectral measure~\eqref{eq:spectral_measure}. Second, the Lanczos approximant
-\(
-\vb^H \bigl(\|\vb\| V_m f(H_m)\ve_1\bigr) = \|\vb\|^2 \ve_1^T f(H_m)\ve_1,
+As anticipated in Section~\ref{sec:errest_integration_quadrature}, when $A$ is Hermitian, the Lanczos approximation of $\vb^H f(A)\vb$ corresponds to an $m$--point Gauss quadrature rule \cite{gome10,gome93}. 
+This classical result follows from two observations. First, the bilinear form is a Riemann--Stieltjes integral with respect to the spectral measure~\eqref{eq:spectral_measure}. Second, the Lanczos approximant
+\( \|\vb\|^2 \ve_1^T f(H_m)\ve_1,
 \)
  can be rewritten as a Gauss quadrature rule by spectral decomposition of the Jacobi matrix $H_m$. Overall, this yields the approximation
 \begin{equation}\label{eq:fab:gq}
@@ -2149,15 +2154,28 @@ When $A$ is Hermitian, Golub and Meurant showed in~\cite{gome10,gome93} that the
 \end{equation}
 where $(\theta_j, \vq_j)$, $j=1,\dots,m$, are the eigenpairs of $H_m$ and the weights are $\omega_j = \|\vb\|^2 \bigl(\ve_1^T \vq_j\bigr)^2$.
 Note that nodes and weights need not be computed explicitly: by the equality on the right in~\eqref{eq:fab:gq}, the quadrature is obtained by computing the $(1,1)$ entry of $f(H_m)$.
-The Gauss quadrature rule has the maximal possible degree of exactness, namely $2m-1$. Therefore, the approximation of $\vb^H f(A)\vb$ is exact for every polynomial of degree at most $2m-1$, which doubles the degree of exactness of the Lanczos approximation~\eqref{eq:rayleigh_ritz_approximation} of $f(A)\vb$, exact only for polynomials of degree at most $m-1$.
+The Gauss quadrature rule has the maximal possible degree of exactness, namely $2m-1$. Therefore, the approximation of $\vb^H f(A)\vb$ is exact for every polynomial of degree at most $2m-1$, which doubles the degree of exactness of the Lanczos approximation~\eqref{eq:rayleigh_ritz_approximation} of $f(A)\vb$, exact only for polynomials of degree at most $m-1$\footnote{
+If the Lanczos method breaks down, the approximations
+\eqref{eq:rayleigh_ritz_approximation} and \eqref{eq:fab:gq} are exact.
+The same holds for the Arnoldi method.}.
+The same principles can be used to define and compute other Gauss--type quadrature rules, such as the Gauss--Radau and Gauss--Lobatto rules. For certain classes of functions, these rules yield upper and lower bounds on $\vb^H f(A)\vb$ (see, e.g., \cite{bebo10}), and they can also be used to obtain error estimates (see Section~\ref{sec:errest_integration_quadrature}).
 
-The same principles can be used to define and compute other Gauss-type quadrature rules, such as the Gauss--Radau, Gauss--Lobatto, and Gauss–Kronrod rules. Suppose that $f$ is \emph{strictly completely monotonic} on an interval $\mathcal{J}$ containing the spectrum of $A$, that is, $f^{(2j)}(z) > 0$ and $f^{(2j+1)}(z) < 0$ for all  $z\in\mathcal{J}$, $j\ge 0$.
-Then the Gauss rule gives a lower bound for $\vb^H f(A)\vb$, the Gauss--Lobatto rule gives an upper bound, and the Gauss--Radau rule gives a lower or an upper bound depending on which endpoint of the spectral interval is prescribed as a node. These results can be used, e.g., to bound the entries of matrix functions~\cite{bebo10}. 
+\todo{SP: I think there are some parts that are overlapping with Section \ref{sec:errest_integration_quadrature}.}
+For a general integrand $f$ and a general measure~\eqref{eq:spectral_measure}, however, reliable error estimation is a hard problem. 
+The main difficulty is that rigorous bounds on the quadrature error involve quantities, such as the value of high--order derivatives of $f$ or information on the spectral measure, that are usually hard or impossible to evaluate in practice. Moreover, as recalled in~\cite{respta16}, it is important to remark that the difference between two consecutive Gauss approximations is known not to be a reliable error estimate in general.
+The \emph{anti--Gauss} rule introduced by Laurie~\cite{la96} can be used instead. It is an $(m+1)$--point quadrature rule whose error is equal in magnitude and opposite in sign to that of the $m$--point Gauss rule for all polynomials of degree up to $2m+1$. Consequently, if the coefficients of the expansion of $f$ in the associated orthogonal polynomials decay sufficiently fast, the difference between the anti--Gauss and the Gauss approximations provides an estimate of the Gauss error~\cite{caresg99,gome10}. A generalization with $m+k$ nodes was proposed and tested in~\cite{prre15}.
+A further alternative is given by the \emph{generalized averaged Gauss} rules proposed by Spalevi\'c~\cite{sp07}. These rules were used to estimate the error of the approximation~\eqref{eq:fab:gq} and extended to the non--Hermitian case in~\cite{respta16}.
 
-Such bounds are typically used to estimate the error of the Gauss approximation~\eqref{eq:fab:gq}. For a general integrand $f$ and a general measure~\eqref{eq:spectral_measure}, however, reliable error estimation is a hard problem. The main difficulty is that rigorous bounds on the quadrature error involve quantities, such as high-order derivatives of $f$ or information on the spectral measure, that are usually hard or impossible to evaluate in practice. Moreover, as recalled in~\cite{respta16}, it is important to remark the difference between two consecutive Gauss approximations is known not to be a reliable error estimate in general.
-When $f$ is not strictly completely monotonic, which is the common case, the bounds above are not available. In this setting, the \emph{anti-Gauss} rule introduced by Laurie~\cite{la96} can be used instead. It is an $(m+1)$-point quadrature rule whose error is equal in magnitude and opposite in sign to that of the $m$-point Gauss rule for all polynomials of degree up to $2m+1$. Consequently, if the coefficients of the expansion of $f$ in the associated orthogonal polynomials decay sufficiently fast, the difference between the anti-Gauss and the Gauss approximations provides an estimate of the Gauss error~\cite{caresg99,gome10}. In 2015, a generalization with $m+k$ nodes was proposed and tested in~\cite{prre15}.
-A further alternative is given by the \emph{generalized averaged Gauss} rules proposed by Spalevi\'c~\cite{sp07,sp14}. These rules were used to estimate the error of the approximation~\eqref{eq:fab:gq} and extended to the non-Hermitian case in~\cite{respta16}.
+The connection between the Lanczos algorithm and Gauss quadrature can be extended to non--Hermitian matrices through the non--Hermitian Lanczos method; see, e.g., \cite{gu92,gu94}. In this framework, the more general bilinear form $\mathbf{c}^H f(A) \vb$, with $\mathbf{c}^H\vb \neq 0$, is no longer a Riemann--Stieltjes integral, but it can be seen as a linear functional $\mathcal{L}(f)$. The matrix $H_m$ is tridiagonal, but not Hermitian, and the Gauss quadrature approximation is generalized into the form
+\[ \mathcal{L}(f) = \mathbf{c}^H f(A) \vb \approx \sum_{j=1}^{q} \sum_{i=0}^{m_j-1} \omega_{i,j} f^{(i)}(\theta_j) = (\mathbf{c}^H\vb) \, \ve_1^T f(H_m) \ve_1,\]
+with $q$ the number of distinct Ritz values, $m_j$ the algebraic multiplicity of $\theta_j$, and $m = \sum_{j=1}^q m_j$; see \cite{dr83,poprst17,poprst18,poprst21}. 
+This extension of Gauss quadrature is also optimal in terms of polynomial approximation (matching moments), since its degree of exactness is \emph{at least} $2m-1$. In particular, the look--ahead version of the non--Hermitian Lanczos method \cite{frguna93} formally resolves the so--called \emph{serious breakdown} problem of the non--Hermitian Lanczos method, since such a breakdown corresponds to a quadrature formula with degree of exactness larger than $2m-1$ \cite{poprst21}.
+Note that if $H_m$ is obtained by Arnoldi method, the approximation is exact for polynomials of degree at most $m-1$. 
 
+Other Gauss--type rules for the non-Hermitian case are given in \cite{respta16,alalprre21}, and Arnoldi--based rules and error analysis can be found in \cite{esmare21,alhaprre24}. Extrapolation methods can also be used for the approximation of bilinear forms \cite{fimi16,fimi17,fimiro20}.
+Rational Gauss and Gauss--type rules were introduced in~\cite{prre14,alprre22}, while~\cite{paposi22} proposes an implementation of the rational Lanczos method for Hermitian matrices that does not require storing the entire vector basis.
+Extensions to the block case can be found in \cite{femarero13} (Gauss and anti--Gauss), \cite{rerota16} (generalized averaged Gauss), \cite{alhere19} (generalized $(m+k)$--node anti--Gauss), \cite{BenEJ20} (by global Lanczos),\cite{beeljbre22} (Gauss and anti--Gauss by extended Lanczos), and \cite{zidrsi25}(acceleration of block Gauss and
+Gauss–-Radau); see also the thesis~\cite{Mar12}.
 
 
 
@@ -2203,7 +2221,9 @@ These developments focus on approximating the full matrix function $f(A)$, where
 
 \section{High-performance computing}\label{sec:hpc}
 
-\todo[inline]{KL: Include \cite{Bla22, CalKOetal14} here}
+\todo[inline]{KL: Include \cite{Bla26, CalKOetal14} here}
+\todo[inline]{XL: Good idea. \cite{Bla26} has been published, and the ref is updated. A paragraph is added in \emph{Parallel computing} for the two papers.}
+
 
 The computation of $\fAb$ takes on a different character in high-performance computing (HPC) environments, where the matrix $A$ is typically large and sparse. A central difficulty is that explicitly forming the matrix function $f(A)$ destroys this sparsity, producing a dense matrix that is impractical to store or manipulate. For this reason, HPC approaches focus on methods that compute the vector $f(A)\vb$ directly, without ever explicitly forming the dense matrix $f(A)$, modifying the original sparse structure of $A$, or requiring its transpose $A^T$. The most effective techniques are those that access $A$ only through matrix–vector products, ensuring that memory usage scales with the number of nonzero entries in $A$.
 
@@ -2217,6 +2237,10 @@ At the implementation level, deploying $\fAb$ solvers on modern supercomputers r
 On distributed-memory systems, matrices and vectors are partitioned across compute nodes and the global solution is computed through communication using frameworks like the Message Passing Interface (MPI). Within each node, shared-memory parallelism (for instance via OpenMP) can multithread local operations, while the most compute-intensive kernels are increasingly offloaded to GPUs. In GPU-accelerated settings, it is essential to keep data resident in GPU memory throughout the computation, since frequent transfers over the PCIe bus introduce latency that can negate performance gains. At the exascale level, energy efficiency is also a key concern. Maximizing floating-point performance per watt is now as important as minimizing runtime, and load-balancing strategies must reflect both considerations.
 
 A major challenge in scaling $f(A)\vb$ methods to large processor counts is the cost of global synchronization. For example, maintaining orthogonality in Krylov subspace methods using modified Gram–Schmidt requires inner products that, in distributed settings, involve global reductions. Each process must pause, contribute its partial result, and wait for the combined value. As the number of nodes increases, the latency of these collective operations can dominate the runtime and limit scalability. Communication-avoiding variants of methods like Arnoldi and Lanczos mitigate this issue by restructuring the computation. They generate multiple basis vectors per communication step, replacing many small synchronization points with fewer, more efficient batched exchanges.
+
+A parallel method for computing matrix functions and their action on vectors is proposed by Blanes \cite{Bla26}, in which the computation is decomposed into independent shifted linear system solves that can be solved concurrently.
+The performance of algorithms based on  Leja interpolation, Taylor polynomial, and Krylov method for computing the action of the matrix exponential is compared in \cite{CalKOetal14}.
+
 
 \todo[inline]{KL: Mention low-sync paper -- not quite the same as classical communication avoidance \cite{TafGT24}}
 \todo[inline]{KL: Mention Hessenburg methods \cite{RamT19, BenEJetal24}}
@@ -2239,18 +2263,27 @@ For recent development of mixed-precision methods in numerical linear algebra, s
 
 The potential of mixed-precision computing for $f(A)\vb$ has been demonstrated in the context of exponential time integration methods~\cite{brg23}, where a reformulation of the exponential Rosenbrock–Euler method enables the actions of the matrix-$\varphi$ functions to be safely computed in reduced precision. 
 In the same paper, the use of low precisions has also been attempted in some matrix--vector products of the incomplete orthogonalization process within an implementation of KIOPS~\cite{grt18}. 
-On the other hand, mixed-precision techniques have been developed more systematically for full matrix functions $f(A)$, including the square root \cite{gks26}, general analytic functions \cite{hili21}, and polynomial approximants to the exponential and cosine \cite{liu25}. As discussed in~\Cref{sec:fA_v_fAb}, however, such methods do not generally provide a practical approach to computing $f(A)\vb$.
+On the other hand, mixed-precision techniques have been developed more systematically for full matrix functions $f(A)$, including the square root \cite{gks26}, general analytic functions \cite{hili21}, and polynomial approximants to the exponential and cosine \cite{liu25}. As discussed in~\Cref{sec:intro}, however, such methods do not generally provide a practical approach to computing $f(A)\vb$.
+
+In contrast to algorithms tailored to IEEE double-precision arithmetic, multiprecision algorithms for evaluating matrix functions to arbitrary precision have also been developed, including methods for the matrix logarithm \cite{fahi18}, matrix exponential \cite{fahi19}, matrix cosine \cite{ahl22}, and more general analytic functions \cite{hili21}.
 
 Overall, the potential of mixed precision remains largely unexploited for large-scale $f(A)\vb$ problems. In particular, the development of systematic precision-selection strategies informed by error analysis, together with comprehensive high-performance implementations, remains an open research direction.
 
 \section{Software} \label{sec:software}
-\todo[inline]{To discuss -- but KL thinks a brief summary is necessary, even if we just point to Higham's 2020 catalogue, or perhaps our own updated version.}
+\todo[inline]{KL: Point to Higham's 2020 catalogue and look up what's been done since 2019, as he doesn't report anything after Mar 2020}
+\todo[inline]{XL}
 
-Many methods for computing the action $f(A)\vb$ reduce the original large-scale problem to the evaluation of $f(H)$, where $H$ is a dense matrix of modest dimension. Consequently, the practical performance and robustness of methods for the action depend in part on the availability of dense routines for this task.
+There is extensive literature on the computation of matrix functions and their actions on vectors; we refer the reader to the recent software survey \cite{hiho20} for a comprehensive overview on software in a wide variety of languages.
+We emphasize that many methods for computing the action $f(A)\vb$ reduce the original large-scale problem to the evaluation of $f(H)$, where $H$ is a dense matrix of modest dimension. Consequently, the practical performance and robustness of methods for the action depend in part on the availability of dense routines for this task.
 
-In view of the extensive literature on dense matrix-function kernels, we mention only a few state-of-the-art algorithms for some common matrix functions; see \cite{hiho20} for a more comprehensive overview. The matrix exponential is typically computed by scaling and squaring with Pad\'e approximation \cite{alhi09}. Similarly, matrix $\varphi$-functions \cite{alli26} and trigonometric matrix functions \cite{ahr15} are often treated by scaling together with a suitable recovery procedure based on Pad\'e approximants. The matrix logarithm is usually computed by inverse scaling and squaring in Schur form \cite{alhi12, ahr13}, while fractional matrix powers can be evaluated reliably by related Schur--Pad\'e algorithms \cite{hili13} or by a direct recursion~\cite{iama13}. The matrix square root is typically handled by Schur methods and their blocked variants \cite{bjha83, dhr13, high87}. More generally, the Schur--Parlett framework \cite{dahi03, hili21} provides a general-purpose approach for computing matrix functions.
+The following list collects more recently developed algorithms that appeared after the publication of the survey \cite{hiho20}.
+\begin{itemize}
+    \item linear combination of matrix $\varphi$-functions: scaling and recovering algorithm~\cite{alli26} 
+    \item analytic matrix functions: multi-precision Schur--Parlett algorithm~\cite{hili21} 
+    \item matrix cosine: scaling and recovering algorithm that works in arbitrary precision~\cite{ahl22}
+    \item linear combination of actions of matrix $\varphi$-functions on vectors: scaling and recovering algorithm~\cite{almo25}
+\end{itemize}
 
-In contrast to algorithms tailored to IEEE double-precision arithmetic, multiprecision algorithms for evaluating matrix functions to arbitrary precision have also been developed, including methods for the matrix logarithm \cite{fahi18}, matrix exponential \cite{fahi19}, matrix cosine \cite{ahl22}, and more general analytic functions \cite{hili21}.
 
 \section{Conclusions} \label{sec:conclusions}
 \begin{itemize}
@@ -2270,7 +2303,8 @@ In contrast to algorithms tailored to IEEE double-precision arithmetic, multipre
 \section*{Acknowledgments}
 \todo[inline]{Write acknowledgments}
 \begin{itemize}
-    \item Thank DFG for funding f(A)bulous workshop and network
+    \item Thank DFG for funding f(A)bulous workshop (2023) and network (2026-present)
+    \item Thank Melina's SFB for supporting October 2026 iteration of the f(A)bulous network
     \item Anyone who did use an LLM to produce text in the survey needs to disclose it bellow!
 \end{itemize}
 
@@ -2278,7 +2312,7 @@ In contrast to algorithms tailored to IEEE double-precision arithmetic, multipre
 During the preparation of this work, the authors used Copilot and Claude for copyediting and language refinement. After using these tools, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.
 
 
-\todo[inline]{Make sure all references are correct, current, and uniformly formatted}
+\todo[inline]{MF:  Make sure all references are correct, current, and uniformly formatted}
 \bibliographystyle{siamplain}
 \bibliography{references}
 \end{document}
