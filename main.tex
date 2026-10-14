@@ -112,7 +112,7 @@ Beyond memory and cost, the two problems also differ in their current state of d
 
 Composing a survey on the topic of $f(A)\vb$ has proven to be a massive undertaking.  To stay within scope, we have intentionally and sometimes contentiously chosen to omit some topics.  A list of them follows.
 \begin{itemize}
-    \item \emph{Exponential integration.} While this is an extremely active and salient application of $\exp(A)\vb$, the topic itself deserves its own survey.  Indeed, some of our authors are concurrently working on it \cite{bergermann2026}. \todo[inline]{Cite expo-int survey as in progress -- just need working title and author list}
+    \item \emph{Exponential integration.} While this is an extremely active and salient application of $\exp(A)\vb$, the topic itself deserves its own survey.  Indeed, some of our authors are concurrently working on it \cite{bergermann2026x5}. \todo[inline]{Cite expo-int survey as in progress -- just need working title and author list}
     \item \emph{$f(z) = \frac{1}{z - s}$.} This is equivalent to solving a linear system $(A - sI) \vx = \vb$, which is itself a massive field upon which methods for $f(A)\vb$ rely.  As a first but certainly not exhaustive step, we would direct the reader to Saad's book~\cite{saad03}.
     \item \emph{$f(z) = \sum_{k = 1}^N c_k z^k$.} While matrix polynomials (with scalar or matrix coefficients) form an important backbone in the analysis of many $f(A)\vb$ methods, we do not address here how to efficiently compute polynomials of $A$.  See \cite{GohLR09} or \cite[Chapter~18]{high:FM}.
     \item \emph{$f(A)\vx = \vb$} Despite being an enticing problem in and of itself, this remains out of scope; see \cite{van87, Hon18}.
@@ -346,7 +346,7 @@ The \emph{field of values} (or \emph{numerical range}) of a matrix $A$ is the se
 Clearly, the field of values is a superset of the spectrum, $\sigma(A) \subseteq \mathcal{W}(A)$, and by the Hausdorff--Toeplitz theorem it is convex and compact. Further, if $A$ is normal, the field of values is the convex hull of $\sigma(A)$. As a special case, when $A$ is Hermitian with smallest and largest eigenvalue $\lmin$ and $\lmax$, respectively, the field of values reduces to the spectral interval $\mathcal{W}(A) = [\lmin,\lmax].$
 
 The importance of the field of values for theory and computation of matrix functions is rooted in the fact that the behavior of the \emph{scalar} function $f$ on $\mathcal{W}(A)$ determines the behavior of $f(A)$ in the sense of the following theorem by Crouzeix and Palencia; see~\cite[Theorem~3.1]{crpa17}.
-\todo{SP: conjecture proved \cite{losc26}}
+\todo{SP: conjecture proved \cite{losc26} and \cite{ji26} (apparently there are two independent proofs this year...)}
 \begin{theorem}\label{thm:crouzeix_palencia}
 Let $A \in \spC^{n \times n}$ and let $f$ be holomorphic on an open set $\Omega \supseteq \mathcal{W}(A)$. Then
 \[
