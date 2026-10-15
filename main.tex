@@ -124,7 +124,7 @@ Composing a survey on the topic of $f(A)\vb$ has proven to be a massive undertak
 
 \subsection{Our contributions}
 
-As already argued, this survey is the first of its kind on the topic of computing the action of a matrix function.  It is our intention that this work is more than just a list of references; we have also endeavored to provide a straightforward taxonomy for the zoo of $f(A)\vb$, which itself is valuable for software engineers designing modular workflows.  In \Cref{sec:leja_interp}, we also generalized L\'eja methods to non-exponential functions, which is a new result to the best of our knowledge.  We also informally expand the University of Manchester software catalogue for matrix functions methods in \Cref{sec:software}, which was last updated in 2020 \cite{hiho20}.
+As already argued, this survey is the first of its kind on the topic of computing the action of a matrix function.  It is our intention that this work is more than just a list of references; we have also endeavored to provide a straightforward taxonomy for the zoo of $f(A)\vb$, which itself is valuable for software engineers designing modular workflows.  In \Cref{sec:leja_interp}, we also generalized L\'eja methods to non-exponential functions, which is a new result to the best of our knowledge.  We also informally expand the University of Manchester software catalogue for matrix function methods in \Cref{sec:software}, which was last updated in 2020 \cite{hiho20}.
 
 \todo[inline]{Revisit this section at the end -- maybe even ask (a private, firewalled) GenAI to read through the paper and suggest other novelties we have potentially overlooked}
 
@@ -139,7 +139,7 @@ In Section~\ref{sec:structured}, we give an overview of methods for different ki
 
 \subsection{Definitions} \label{sec:definitions}
 
-Before delving into formal definitions, it is important to distinguish a true matrix function from component-wise operations. In many programming environments, passing an array to a standard mathematical function results in an element-by-element evaluation. This perspective is not useful in numerical linear algebra, as it does not obey the rules of matrix algebra. For instance, evaluating the matrix square root of $A$, that is finding a matrix $\sqrt{A}$ such that $\sqrt{A} \cdot \sqrt{A} = A$, is fundamentally different from taking the square root of each individual entry of $A$.
+Before delving into formal definitions, it is important to distinguish a true matrix function from component-wise operations. In many programming environments, passing an array to a standard mathematical function results in an element-by-element evaluation. This perspective is not useful in numerical linear algebra, as it does not obey the rules of matrix algebra. For instance, evaluating the matrix square root of $A$, that is, finding a matrix $\sqrt{A}$ such that $\sqrt{A} \cdot \sqrt{A} = A$, is fundamentally different from taking the square root of each individual entry of $A$.
 
 Instead, a mathematical matrix function $f(A)$ is expected to generalize scalar function properties while respecting matrix algebra. There are many different ways to define functions of matrices, of which we cover the most important ones in the following. Under natural conditions, all of these definitions are equivalent, and each has its own advantages and disadvantages. It is, both theoretically and computationally, beneficial to be able to always work with the definition that is most convenient for the situation at hand.
 
@@ -294,7 +294,7 @@ is called \emph{Laplace--Stieltjes function corresponding to $\sigma$} or the \e
 
 In fact, one can show that every completely monotonic function is a Laplace--Stieltjes function, and under certain natural conditions on the admissible measure, the converse is also true; see, e.g.,~\cite[Theorem~1.4]{ssv12}.\footnote{A particular implication of this theorem is that every Cauchy--Stieltjes function is also a Laplace--Stieltjes function.}
 
-The last class connected of functions related to complete monotonicity that we cover is \emph{Bernstein functions}. While not being completely monotonic themselves, they can be colloquially characterized as ``nonnegative primitives of completely monotonic functions''.
+The last class of functions related to complete monotonicity that we cover is \emph{Bernstein functions}. While not being completely monotonic themselves, they can be colloquially characterized as ``nonnegative primitives of completely monotonic functions''.
 
 \begin{definition}\label{def:bernstein_function}
 An infinitely many times continuously differentiable function $f: \spR^+ \rightarrow \spR$ that is nonnegative and satisfies $(-1)^{k-1}f^{(k)}(z) \geq 0$ for $k \in \mathbb{N}$ and $z \in \spR^+$ is called \emph{Bernstein function}.
@@ -365,7 +365,7 @@ In this section, we discuss several important real-world applications that requi
 \subsection{Exponential integrators}\label{sec:exponential_integrators}
 % See survey by Gaudreault \& friends; key applications include numerical weather prediction, time-stepping methods for a host of PDEs and ODEs, well suited for stiff problems, etc.
 
-Exponential time integrators \cite{hoos10} are a family of numerical methods for solving systems of ordinary differential equations, which typically arises after the spatial discretisation of a system of partial differential equations (PDEs):
+Exponential time integrators \cite{hoos10} are a family of numerical methods for solving systems of ordinary differential equations, which typically arise after the spatial discretisation of a system of partial differential equations (PDEs):
 \begin{equation}
     \frac{dU}{dt} = F(U), \label{eq:ode}
 \end{equation}
@@ -533,7 +533,7 @@ where we assume $0 < \alpha < 1$ for simplicity and the vector $\vu_0$ contains 
 \begin{equation}\label{eq:solution_fde_mittag_leffler}
 \vu(t) = \vu_0 + (t-t_0)^\alpha E_{\alpha,\alpha+1}((t-t_0)^\alpha A)(A\vu_0+\vb);
 \end{equation}
-see~\cite{podl98}. An attractive feature of~\eqref{eq:solution_fde_mittag_leffler} is that---in principle---it allows to evaluate the solution at any time $t > 0$. In contrast---due to the existence of a persistent memory\footnote{This persistent memory is also the reason why the origin $t_0$ needs to be explicitly denoted in the Caputo derivative.} in the fractional derivative operator---time stepping approaches for~\eqref{eq:fractional_in_time} need to keep track of the solution at all previous time points and therefore often have extensive memory requirements and computational cost~\cite{diet10,garr18}. Therefore, interest in approximating the action of Mittag-Leffler functions on vectors has received quite some attention, see, e.g.,~\cite{gapo11,gapo18,gapo19} for a general treatment, ~\cite{mono11,mono18,mopo12} for analysis of (rational) Krylov methods for fractional differential equations and~\cite{gmp15,gmp17} for an application to the time-fractional Schr\"odinger equation. In \cite{dgp26}, a new global method for Mittag-Leffler functions is presented. It compresses memory requirements by combining the low-rank approximation with Krylov subspace reduction over the $\star$-algebra \cite{rbg25,gipo20}, and generally applies to non-autonomous time-fractional differential equations.
+see~\cite{podl98}. An attractive feature of~\eqref{eq:solution_fde_mittag_leffler} is that---in principle---it allows to evaluate the solution at any time $t > 0$. In contrast---due to the existence of a persistent memory\footnote{This persistent memory is also the reason why the origin $t_0$ needs to be explicitly denoted in the Caputo derivative.} in the fractional derivative operator---time-stepping approaches for~\eqref{eq:fractional_in_time} need to keep track of the solution at all previous time points and therefore often have extensive memory requirements and computational cost~\cite{diet10,garr18}. Therefore, interest in approximating the action of Mittag-Leffler functions on vectors has received quite some attention, see, e.g.,~\cite{gapo11,gapo18,gapo19} for a general treatment, ~\cite{mono11,mono18,mopo12} for analysis of (rational) Krylov methods for fractional differential equations and~\cite{gmp15,gmp17} for an application to the time-fractional Schr\"odinger equation. In \cite{dgp26}, a new global method for Mittag-Leffler functions is presented. It compresses memory requirements by combining the low-rank approximation with Krylov subspace reduction over the $\star$-algebra \cite{rbg25,gipo20}, and generally applies to non-autonomous time-fractional differential equations.
 
 \subsubsection{Space-fractional elliptic equations}\label{sec:fractional_in_space}
 \todo[inline]{KL: Does \cite{bhk12} fit here?}
@@ -553,7 +553,7 @@ which is solved by $\vu = A^{-\alpha}\vf$. Thus, solving a discretized space-fra
 
 Matrix functions play an important role in many areas of network analysis, of which we highlight a few in the following. As our description is necessarily brief, we refer to the surveys~\cite{bebo20,eshi10} for further details and a more exhaustive treatment. Throughout this subsection, we assume that the complex network in question is represented by an undirected graph $G = (V,E)$, where $V = \{1,\dots,n\}$ denotes the set of nodes and $E$ denotes the set of edges.
 
-Two matrix representations of $G$ play an important role in the applications mentioned in the following: The adjacency matrix $A_G$ of $G$ is a binary matrix with entries
+Two matrix representations of $G$ play an important role in the applications mentioned bellow: The adjacency matrix $A_G$ of $G$ is a binary matrix with entries
 \[
 [A_G]_{ij} = \begin{cases}
 1 & \text{if } (i,j) \in E \\
@@ -573,7 +573,7 @@ Let us note that in the centrality measures discussed above, one sometimes intro
 
 Recently, the use of two-parameter Mittag-Leffler functions for defining centrality measures was discussed in~\cite{ardu21}, which can be seen as a generalization of subgraph centrality, as the exponential is a specific special case of a Mittag-Leffler function.
 
-Many real world systems are better modeled by \emph{multiplex and multilayer networks} (e.g., networks where more than one type of connection between nodes can exist) or \emph{temporal networks} (i.e., networks that evolve over time). The measures discussed above can be generalized to these types of networks; see, e.g.,~\cite{adfr21,arhi17,ahnw22,best21,best22,berg25,fehi17,gphe11,grhi13}. While this generalization is conceptually rather straight-forward, it comes with computational challenges. E.g., the size of \emph{supra-adjacency matrices} representing multiplex networks grows exponentially in the number of layers, and in temporal networks one needs to work with a sequence of matrices for individual time slices.
+Many real world systems are better modeled by \emph{multiplex and multilayer networks} (e.g., networks where more than one type of connection between nodes can exist) or \emph{temporal networks} (i.e., networks that evolve over time). The measures discussed above can be generalized to these types of networks; see, e.g.,~\cite{adfr21,arhi17,ahnw22,best21,best22,berg25,fehi17,gphe11,grhi13}. While this generalization is conceptually rather straightforward, it comes with computational challenges. E.g., the size of \emph{supra-adjacency matrices} representing multiplex networks grows exponentially in the number of layers, and in temporal networks one needs to work with a sequence of matrices for individual time slices.
 
 \subsubsection{Non-local network dynamics}\label{sec:nonlocal_network_dynamics}
 
