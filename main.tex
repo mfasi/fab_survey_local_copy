@@ -436,16 +436,17 @@ and
 \end{equation}
 The first scheme~\eqref{eq:epi2} advances the solution using only $\varphi_1$ acting on the current forcing, while the second scheme~\eqref{eq:epi3} supplements this with a $\varphi_2$ correction driven by the nonlinear remainder from the previous step. The $\varphi$-function notation makes explicit which functions of the matrix $\Delta t J_n$ must be computed, and facilitates the use of numerical algorithms for their evaluation.
 
-While the EPI schemes above are linear multistep methods, it is also possible to construct exponential integrators of Runge--Kutta type, in which intermediate stage values are computed and used to improve the approximation of the nonlinear remainder within a single time step. An example is the two-stage, third-order EPIRK3 scheme of \cite{tokm06}, which may be written as
-\begin{equation}
-    \begin{aligned}
-        r_1 &= U_n + \varphi_1\!\left(\tfrac{1}{2}\Delta t J_n\right)\Delta t F_n, \\[6pt]
-        U_{n+1} &= U_n + \varphi_1(\Delta t J_n)\,\Delta t F_n + \frac{2}{3}\,\varphi_2(\Delta t J_n)\,\Delta t R(r_1).
-    \end{aligned}
-    \label{eq:epirk3}
-\end{equation}
-Here, $r_1$ is an intermediate stage value computed at a half-step, and $R(r_1) = F(r_1) - F(U_n) - J_n(r_1 - U_n)$ is the nonlinear remainder evaluated at this stage. The structure of EPIRK3 is closely analogous to EPI3, but the remainder is evaluated at an intermediate point rather than using information from the previous time level, making the scheme self-starting and potentially more suitable for adaptive time-stepping strategies.
-
+Exponential integrators of Runge--Kutta type use intermediate stage values to approximate the nonlinear remainder within a single time step. An example is the three-stage, fourth-order scheme EPIRK4s3, derived using stiff order conditions \cite{ratok17}:
+\begin{align}
+    U_{n2} &= U_n + \frac{1}{8}\varphi_1\!\left(\frac{1}{8}\Delta t J_n\right)\Delta t F_n, \nonumber\\
+    U_{n3} &= U_n + \frac{1}{9}\varphi_1\!\left(\frac{1}{9}\Delta t J_n\right)\Delta t F_n, \nonumber\\
+    U_{n+1} &= U_n + \varphi_1(\Delta t J_n)\Delta t F_n \nonumber\\
+    &\quad + \bigl(1892\varphi_3(\Delta t J_n)-42336\varphi_4(\Delta t J_n)\bigr)\Delta t R(U_{n2}) \nonumber\\
+    &\quad + \bigl(1458\varphi_3(\Delta t J_n)-34992\varphi_4(\Delta t J_n)\bigr)
+    \Delta t\bigl(R(U_{n3})-2R(U_{n2})\bigr).
+    \label{eq:epirk4s3}
+\end{align}
+Here, $R$ is the nonlinear remainder defined in \eqref{eq:remainder}. The internal stages depend on the same vector $F_n$, while the final update combines several $\varphi$-function actions. We discuss below how this structure can be exploited when evaluating these actions.
 
 All of the methods presented above require the evaluation of expressions of the general form
 \begin{equation}
@@ -469,7 +470,38 @@ W = (\tau^{-p}b_p, \tau^{1-p}b_{p-1}, \dots, \tau^{-1}b_1) \in \mathbb{C}^{N \ti
 \end{equation}
 and $e_p$ represents the $p$-th column of the identity matrix $I_p$ , and the symbol $0$ denotes a null matrix of the appropriate dimensions.
 
-The evaluation of linear combinations of the form~\eqref{eq:ansatz} dominates the computational cost of exponential time integration and is therefore a central object of considerable study. Various approaches have been proposed for this task, including Taylor series methods~\cite{alhi11, lyl22, almo25a}, Leja interpolation~\cite{ckor16,deei22,det23}, rational approximation methods~\cite{best24}, and Krylov subspace methods~\cite{gasa92,grt18,lisc26,niwr12,saad92,sidj98,tgt26}, each offering different trade-offs in terms of computational cost, and suitability for large-scale problems.
+The efficiency of an exponential integrator depends both on the numerical scheme and on the algorithm used to evaluate the matrix-function actions. The scheme EPIRK4s3 in \eqref{eq:epirk4s3} illustrates this connection. Evaluating each stage separately would require three calls to an adaptive Krylov solver. However, the two internal stages can be computed in a single call, followed by a second call for the final update.
+
+The two internal stages can share a solver call because both require the action of $\varphi_1$ on the same vector, evaluated at two different values of its scalar argument. Setting $A=\Delta t J_n$, $b_1=\Delta t F_n$, and all other $b_i=0$ in \eqref{eq:phipm_sol} gives
+\begin{equation}\label{eq:epirk4s3_internal_action}
+    v(\tau)=\tau\varphi_1(\tau A)b_1.
+\end{equation}
+A single solver call over $[0,1/8]$, with output at $\tau=1/9$ and $\tau=1/8$, therefore provides both stage increments:
+\begin{equation}
+    U_{n2}=U_n+v(1/8),\qquad U_{n3}=U_n+v(1/9).
+\end{equation}
+The factors multiplying $\varphi_1$ in the scheme coincide with the factors $\tau$ in this representation, so no additional rescaling is required.
+
+Once the internal stages are available, their nonlinear remainders can be combined before the final solver call. Define $R_2=R(U_{n2})$ and $R_3=R(U_{n3})$, and choose
+\begin{equation}\label{eq:epirk4s3_vectors}
+\begin{aligned}
+    b_0&=b_2=0,\\
+    b_1&=\Delta t F_n,\\
+    b_3&=\Delta t\bigl[1892R_2+1458(R_3-2R_2)\bigr],\\
+    b_4&=\Delta t\bigl[-42336R_2-34992(R_3-2R_2)\bigr].
+\end{aligned}
+\end{equation}
+A second call evaluates
+\begin{equation}\label{eq:epirk4s3_final_action}
+    w(\tau)=\tau\varphi_1(\tau A)b_1
+       +\tau^3\varphi_3(\tau A)b_3
+       +\tau^4\varphi_4(\tau A)b_4
+\end{equation}
+at $\tau=1$, giving $U_{n+1}=U_n+w(1)$.
+
+In this implementation, the matrix-function solver performs two types of tasks: evaluating a single function acting on a vector at several scalar arguments, and evaluating a linear combination of different function actions at a common argument. Grouping the computations in this way reduces the number of separate solver calls within each time step. 
+
+Besides reducing the number of solver calls, the choice of algorithm for each evaluation is important for the overall efficiency. Methods for computing linear combinations of the form~\eqref{eq:ansatz} include Taylor series methods~\cite{alhi11, lyl22, almo25a}, Leja interpolation~\cite{ckor16,deei22,det23}, rational approximation methods~\cite{best24}, and Krylov subspace methods~\cite{gasa92,grt18,lisc26,niwr12,saad92,sidj98,tgt26}, each offering different trade-offs in terms of computational cost, and suitability for large-scale problems.
 
 To conclude this subsection, we note a useful property of the $\varphi$-functions that is often used to evaluate them on the small projected matrices arising in Krylov subspace methods. These functions satisfy the modified squaring relation
 \begin{equation}\label{eq:phi_modified_squaring}
