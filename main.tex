@@ -402,7 +402,9 @@ This family of exponential Rosenbrock methods \cite{tokm06} is exemplified by th
 \begin{equation}
     U_{n+1} = U_n + \left(e^{J_n \Delta t} - I\right) J_n^{-1} F_n. \label{eq:epi2_raw}
 \end{equation}
-This scheme also appears in the literature under the name \emph{exponentially fitted Euler} method. Although it omits the nonlinear correction, it is exact for linear systems and can yield good accuracy in practice for weakly nonlinear problems.
+This scheme is also known as the \emph{exponential Rosenbrock--Euler} method or the \emph{exponentially fitted Euler} method. For an autonomous linear system of ODEs, EPI2 reduces to the exact solution when the matrix exponential is computed exactly. The method is therefore A-stable. For nonlinear problems, stability requires further analysis and depends on the properties of the differential equation.
+
+The cost of evaluating the matrix functions may be reduced by replacing the Jacobian with a simpler operator representing the stiff processes. This gives a splitting similar to that in \eqref{eq:split}, with the remaining terms treated through the remainder. Such an approximation can be useful when the operator has a structure that simplifies the matrix-function evaluation. However, the exactness for linear systems is generally lost, and the terms omitted from the operator may impose a time-step restriction. 
 
 The second scheme is the third-order EPI3 \cite{tokm06}, which accounts for the nonlinear remainder through information from the previous time level:
 \begin{equation}
