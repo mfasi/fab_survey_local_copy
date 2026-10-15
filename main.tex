@@ -471,6 +471,19 @@ and $e_p$ represents the $p$-th column of the identity matrix $I_p$ , and the sy
 
 The evaluation of linear combinations of the form~\eqref{eq:ansatz} dominates the computational cost of exponential time integration and is therefore a central object of considerable study. Various approaches have been proposed for this task, including Taylor series methods~\cite{alhi11, lyl22, almo25a}, Leja interpolation~\cite{ckor16,deei22,det23}, rational approximation methods~\cite{best24}, and Krylov subspace methods~\cite{gasa92,grt18,lisc26,niwr12,saad92,sidj98,tgt26}, each offering different trade-offs in terms of computational cost, and suitability for large-scale problems.
 
+To conclude this subsection, we note a useful property of the $\varphi$-functions that is often used to evaluate them on the small projected matrices arising in Krylov subspace methods. These functions satisfy the modified squaring relation
+\begin{equation}\label{eq:phi_modified_squaring}
+    \varphi_\ell(2A)
+    = \frac{1}{2^\ell}
+      \left(
+        \varphi_0(A)\varphi_\ell(A)
+        + \sum_{i=1}^{\ell}
+          \frac{\varphi_i(A)}{(\ell-i)!}
+      \right),
+    \qquad \ell\geq0.
+\end{equation}
+For $\ell=0$, the sum is empty and the relation reduces to $e^{2A}=(e^A)^2$. For $\ell\geq1$, it provides an extension of the scaling-and-squaring procedure to the $\varphi$-functions \cite{skwr09}. The functions are first evaluated at a scaled matrix $2^{-s}A$, and repeated application of \eqref{eq:phi_modified_squaring} recovers their values at $A$.
+
 \subsection{Fractional differential equations}\label{sec:fractional_differential_equations}
 
 Differential equations involving derivatives of fractional order are a topic that has recently gained a lot of attention, as such equations can, e.g. model anomalous diffusion~\cite{mgn94} or the behavior of viscoelastic materials~\cite{diet10}; see~\cite{szbc18} for an extensive overview of application areas in various areas of science and engineering. In the following, we separately discuss \emph{fractional-in-time} and \emph{fractional-in-space} differential equations, with both classes prominently featuring matrix functions.
