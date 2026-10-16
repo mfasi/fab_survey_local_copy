@@ -503,6 +503,7 @@ In this implementation, the matrix-function solver performs two types of tasks: 
 
 Besides reducing the number of solver calls, the choice of algorithm for each evaluation is important for the overall efficiency. Methods for computing linear combinations of the form~\eqref{eq:ansatz} include Taylor series methods~\cite{alhi11, lyl22, almo25a}, Leja interpolation~\cite{ckor16,deei22,det23}, rational approximation methods~\cite{best24}, and Krylov subspace methods~\cite{gasa92,grt18,lisc26,niwr12,saad92,sidj98,tgt26}, each offering different trade-offs in terms of computational cost, and suitability for large-scale problems.
 
+\todo[inline]{SG: maybe we should move this elsewhere?}
 To conclude this subsection, we note a useful property of the $\varphi$-functions that is often used to evaluate them on the small projected matrices arising in Krylov subspace methods. These functions satisfy the modified squaring relation
 \begin{equation}\label{eq:phi_modified_squaring}
     \varphi_\ell(2A)
@@ -1032,26 +1033,50 @@ r(A)\vb = \widetilde{p}(A)\vb + \sum_{i=0}^\ell \omega_i \vx^{(i)}.
 
 Efficiently solving shifted linear systems~\eqref{eq:shifted_linear_systems} is an active research area in its own right, and we refer the reader to the surveys~\cite{berg20,ssk20} and the references therein for a detailed exposition. Note that when using a direct solver for the shifted systems, the resulting algorithm is embarrassingly parallel, as all systems~\eqref{eq:shifted_linear_systems} can be solved completely independently, and one only needs to assemble the result~\eqref{eq:rAb_pfe} once in the end. When the systems~\eqref{eq:shifted_linear_systems} cannot efficiently be solved by a direct method, it can be attractive to use a Krylov subspace method, as these allow solving all systems at once at only a marginally higher cost than for a single system; see \Cref{sec:multishift} below for details.
 
+An alternative to partial fraction expansions is available when a rational approximant is given in continued fraction form. In this case, $r(A)\vb$ can be obtained from a single augmented linear system with a block tridiagonal coefficient matrix constructed from the continued fraction~\cite{fkt21,tsol23}.
+
 In the following, we highlight how the above approach has been used in matrix function computations, and how suitable rational approximations for $f$ can be obtained.
 
-\subsubsection{Closed-form rational approximations}
-\todo[inline]{MS}
-	\begin{itemize}
-		\item PFE for sign function via Zolotarev~\cite[Section~5]{efls02},\cite{scha08},\cite{birk15} (extension to block rhs), \cite{bbfh10}
-		\item Best uniform rational approximation for fractional powers~\cite{koma24}
-        \item Mention \cite{tsol23} here
-	\end{itemize}
+\subsubsection{Explicit and best rational approximations}
+Certain functions admit particularly effective rational approximations based on classical minimax approximation theory. A prominent example is the matrix sign function, for which Zolotarev's solution of the rational approximation problem on two disjoint real intervals yields explicit formulas involving elliptic functions~\cite{efls02,zolo77}. For a Hermitian matrix $A$ with spectrum contained in $[-b,-a]\cup[a,b]$, $0<a<b$, the corresponding odd rational approximant can be written as
+\begin{equation}
+    r_\ell(z)=z\sum_{i=1}^{\ell}\frac{\omega_i}{z^2+t_i},
+\end{equation}
+where $t_i,\omega_i>0$. The approximation error decreases geometrically with $\ell$, with a convergence exponent that depends logarithmically on $b/a$. The partial fraction representation allows $r_\ell(A)\vb$ to be evaluated using shifted linear systems with coefficient matrices $A^2+t_iI$. Applications to the matrix sign function, including error bounds, deflation techniques, and extensions to non-Hermitian matrices and multiple right-hand sides, are discussed in~\cite{birk15,bbfh10,efls02,scha08}. Closely related Zolotarev approximants have also been used to construct rational minimax iterations for the matrix square root~\cite{gawl19}.
+
+For fractional powers, another approach relies on best uniform rational approximations (BURA). Let $r_{\alpha,\ell}$ denote the best rational approximant of type $(\ell,\ell)$ to $z^\alpha$, $0<\alpha<1$, on $[0,1]$. For a Hermitian positive definite matrix $A$ with $\lambda_{\min}(A)\geq a>0$, this gives
+\begin{equation}
+    A^{-\alpha}\vb\approx a^{-\alpha}r_{\alpha,\ell}(aA^{-1})\vb.
+\end{equation}
+The rational function on the right can be rewritten in partial fraction form involving shifted systems with $A$. The minimax approximation error asymptotically scales like $\mathcal{O}(4^{1+\alpha}\sin(\pi\alpha)\exp(-2\pi\sqrt{\alpha\ell}))$, yielding root-exponential convergence independent of the upper spectral bound~\cite{stahl03}. BURA-based methods for fractional powers of sparse positive definite matrices have been developed and analyzed in~\cite{hlmm20,hlmm19,hlmv18,koma24}, including variants with different scaling and approximation strategies. Unlike the Zolotarev constructions, the coefficients of these general minimax approximants are typically determined numerically.
+
 
 \subsubsection{Rational approximations arising from quadrature rules}
-\todo[inline]{MS, MF}
-\begin{itemize}
-    \item Conformal mapping + quadrature for fractional powers, log, \dots~\cite{hht08}
-	\item Parabolic, hyperbolic and cotangent contours for Bromwich integrals (inversion of Laplace transform)~\cite{tws06,wetr07}
-	\item Trapezoidal rule for fractional powers~\cite{acno22}
-	\item Gauss--Legendre~\cite{nova13}, Gauss--Laguerre~\cite{acno22} and Gauss--Jacobi~\cite{acno17} rules for fractional powers
-    \item Carath\'eorydory-Fej\'er \cite{sctr07}
-    \item Fej\'er (not sure if the same as above): \cite{nova03} \todo[inline]{SP: isn't this a polynomial interpolation?}
-\end{itemize}
+A conceptually different approach for constructing rational approximations is to apply a suitable quadrature rule to an integral representation of $f$. For example, an $\ell$-point quadrature rule with nodes $t_i$ and weights $\omega_i$ applied to the Stieltjes representation~\eqref{eq:stieltjes_function} yields
+\begin{equation}\label{eq:stieltjes_quadrature}
+    f(z)\approx a+\sum_{i=1}^{\ell}\frac{\omega_i}{z+t_i},
+\end{equation}
+a rational approximation in partial fraction form with poles $-t_i$. Similarly, quadrature applied to the Cauchy integral representation~\eqref{eq:matrix_function_cauchy} produces rational approximations whose poles are determined by the quadrature nodes on the contour. The convergence behavior depends strongly on the choice of integral representation, variable transformation, and quadrature rule.
+
+We mention in passing that some of the approaches summarized in the following were originally proposed for approximating the dense matrix function $f(A)$, but all of them generalize directly to the case of $f(A)\vb$ by simply replacing explicit computation of matrix inverses with the solution of linear systems.
+
+Early contour-quadrature methods for matrix functions arose in the numerical solution of parabolic evolution equations~\cite{sst00,sst03}. Related methods for the matrix exponential build on numerical inverse Laplace transformation, notably Talbot's method~\cite{talbot79}. Trapezoidal quadrature along parabolic, hyperbolic, and Talbot-type contours yields rational approximations to the exponential with geometric convergence~\cite{tws06,wetr07}; the connection to rational approximation on the negative real axis is examined in detail in~\cite{tws06}. Such contour methods were also developed for the $\varphi$-functions occurring in exponential integrators~\cite{sctr07}.
+
+For functions with branch cuts or singularities, such as fractional powers and the logarithm, an influential approach was introduced in~\cite{hht08}. For matrices with real positive eigenvalues in $[\lmin,\lmax]$, a conformal mapping based on Jacobi elliptic functions transforms the Cauchy integral into a form amenable to the periodic trapezoidal rule. The resulting approximations converge geometrically with error of order $\mathcal O\bigl(\exp(-\pi^2\ell/(\log(\lmax/\lmin)+3))\bigr)$, so that the convergence rate deteriorates only logarithmically when the spectral interval grows. For the square root~\cite[Section 4]{hht08} proposes a modification which doubles the convergence exponent. The connection to rational approximations  is discussed explicitly in~\cite[Section~5]{hht08}.
+
+Much subsequent work addresses fractional powers of positive operators. For $0<\alpha<1$, the Stieltjes representation of $z^{-\alpha}$ becomes, after setting $t=e^s$,
+\begin{equation}\label{eq:fractional_power_sinc_integral}
+    z^{-\alpha}=\frac{\sin(\pi\alpha)}{\pi}\int_0^\infty\frac{t^{-\alpha}}{z+t}\,dt=\frac{\sin(\pi\alpha)}{\pi}\int_{-\infty}^\infty\frac{e^{(1-\alpha)s}}{z+e^s}\,ds.
+\end{equation}
+Applying the trapezoidal rule with step size $h>0$ and truncating the sum gives the so-called sinc-quadrature approximation
+\begin{equation}\label{eq:fractional_power_sinc_rule}
+    r_{h,k,\ell}(z)=\frac{h\sin(\pi\alpha)}{\pi}\sum_{i=-k}^{\ell}\frac{e^{(1-\alpha)ih}}{z+e^{ih}}.
+\end{equation}
+The poles are real and negative and geometrically spaced. The transformed integrand is analytic in a strip around the real axis and decays exponentially at both ends; by balancing discretization and truncation errors, one obtains yields root-exponential convergence of order $\mathcal O(\exp(-c\sqrt{\ell}))$ for a suitable choice of $h$, $k$, and $\ell$, with estimates also available for unbounded positive or regularly accretive operators; cf.~\cite{blp19,bp17}.
+
+Another approach maps the Stieltjes integral to the interval $[-1,1]$ via the variable transformation $t=\tau(1-s)/(1+s)$ and applies Gauss--Jacobi quadrature with weight $(1-s)^{-\alpha}(1+s)^{\alpha-1}$; see~\cite{acno17,acno19}. The resulting rational approximants are related to Pad\'e approximants of $z^{-\alpha}$ with expansion point $\tau$. Convergence is geometric on fixed bounded positive spectral intervals, while degree-dependent choices of $\tau$ lead to algebraic estimates uniform on unbounded spectra~\cite{acno19}. Further constructions employ Gauss--Laguerre quadrature after splitting the integral into two exponentially weighted integrals~\cite{acno22lag}, or Gauss--Legendre quadrature for $z^{-1/2}$ after transforming it into two integrals with analytic integrands on the interval $[0,1]$; see~\cite{deno23}. The latter yields a more favorable condition-number dependence than the Gauss--Jacobi construction for the inverse square root. Double-exponential transformations combined with the trapezoidal rule have been studied for the matrix logarithm~\cite{tasmz20} and fractional powers~\cite{acno22,tasmkz21}, with particular attention to truncation errors.
+
+There is no uniformly preferable quadrature construction. Conformal-mapping methods are attractive when both ends of a bounded positive spectral interval are known, whereas sinc and Gauss--Laguerre quadrature can be used without an upper spectral bound. Gauss--Jacobi quadrature gives a simple real-pole construction, while the specialized Gauss--Legendre approach is particularly competitive for inverse square roots. 
 
 Quadrature-based rational approximations have also been developed for the weighted geometric mean of two Hermitian positive definite matrices $A$ and $B$~\cite{biia24}, which is defined as
 \begin{equation*}
