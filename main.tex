@@ -1104,7 +1104,7 @@ They also adapt the conformal-map quadrature of Hale--Higham--Trefethen for frac
 
 Ostensibly the most popular approaches for computing $\fAb$ efficiently and accurately fall under the umbrella of Krylov subspace methods. While Krylov methods have been used since the 1950s for solving linear systems and finding eigenvalues~\cite{arno51,hest52,lanc50}, their first uses for approximating the action of matrix functions only date back to the late 1980s and early 1990s; see~\cite{drkn89,eric90,kniz91,saad92}.
 
-\subsection{The Arnoldi and Lanczos approximations for $f(A)b$}
+\subsection{The Arnoldi and Lanczos approximations for \texorpdfstring{$f(A)b$}{f(A)b}}
 The $m$th Krylov subspace corresponding to a matrix $A$ and a vector $\vb$ is defined as
 \begin{equation}\label{eq:krylov_subspace}
 \spK_m(A,\vb) = \spn\{\vb,A\vb,A^2\vb,\dots,A^{m-1}\vb\}\nonumber = \{p_{m-1}(A)\vb: p_{m-1} \in \Pi_{m-1}\}.
