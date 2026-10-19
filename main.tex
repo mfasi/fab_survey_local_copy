@@ -1038,7 +1038,15 @@ An alternative to partial fraction expansions is available when a rational appro
 In the following, we highlight how the above approach has been used in matrix function computations, and how suitable rational approximations for $f$ can be obtained.
 
 \subsubsection{Explicit and best rational approximations}
-Certain functions admit particularly effective rational approximations based on classical minimax approximation theory. A prominent example is the matrix sign function, for which Zolotarev's solution of the rational approximation problem on two disjoint real intervals yields explicit formulas involving elliptic functions~\cite{efls02,zolo77}. For a Hermitian matrix $A$ with spectrum contained in $[-b,-a]\cup[a,b]$, $0<a<b$, the corresponding odd rational approximant can be written as
+Certain functions admit particularly effective rational approximations based on classical minimax approximation theory. 
+
+Pad\'e approximants to the exponential provide a classical family of rational functions with explicitly known coefficients, obtained by matching the Taylor expansion of $e^z$ at the origin. They are central to scaling-and-squaring algorithms for the matrix exponential~\cite{alhi09,guna16}, although the required matrix squaring is less convenient when only $e^A\vb$ is sought. For matrices with eigenvalues on or near the negative real axis, best uniform rational approximations of the exponential are particularly attractive. The existence of geometrically convergent rational approximations on the entire negative real half-axis was established in~\cite{cmv69}, and numerical constructions were investigated in~\cite{crv84}. Writing $E_\ell$ for the best uniform approximation error of type $(\ell,\ell)$ on $(-\infty,0]$, one has
+\begin{equation}
+    \lim_{\ell\to\infty}E_\ell^{1/\ell}=\frac{1}{9.2890254919208189\ldots};
+\end{equation}
+see~\cite{gora89}. The resulting Chebyshev Rational Approximation Method (CRAM) has, e.g., been successfully applied to matrix exponentials arising in stiff nuclear depletion problems~\cite{pusa16}. The rational approximants have complex conjugate pole-residue pairs and can be evaluated through partial fraction expansions; coefficients for degrees up to 48 are tabulated in~\cite{pusa16}. Related approximations with prescribed real poles have been investigated in~\cite{ande81,borw83}, including recent constructions with shared poles for approximating $e^{-tA}\vb$ over an entire time interval~\cite{gush26a}.
+
+Another prominent example is the matrix sign function, for which Zolotarev's solution of the rational approximation problem on two disjoint real intervals yields explicit formulas involving elliptic functions~\cite{efls02,zolo77}. For a Hermitian matrix $A$ with spectrum contained in $[-b,-a]\cup[a,b]$, $0<a<b$, the corresponding odd rational approximant can be written as
 \begin{equation}
     r_\ell(z)=z\sum_{i=1}^{\ell}\frac{\omega_i}{z^2+t_i},
 \end{equation}
