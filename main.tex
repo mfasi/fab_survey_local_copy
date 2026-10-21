@@ -96,28 +96,28 @@
 
 \section{Introduction} \label{sec:intro}
 
-The computation of a function of a matrix $f(A)$ poses interesting intellectual and mathematical challenges.  There is something fantastical about taking a scalar function and redefining it on a matrix.  Why should that make any sense?  Is it satisfying to see that not only does it make much sense, it is also necessary for a dizzying array of applications in scientific computing.  Higham's elegant treatment in the 2008 monograph \emph{Functions of Matrices} gave $f(A)$ the attention it deserves and ushered a generation of new initiates into the mysteries of matrix functions \cite{high08}.
+Extending a scalar function $f$ so that it can be evaluated at a matrix argument $A$ poses interesting intellectual and mathematical challenges. Matrix theory shows that such an extension can be defined in a mathematically natural and consistent manner, yielding tools that are prevalent in a broad range scientific computing applications. Higham's elegant treatment in the 2008 monograph \emph{Functions of Matrices}~\cite{high08} marked an important milestone in the development of the subject, inspiring a generation of work on the theory and computation of matrix functions.
 
-Nearly two decades later, we attempt to summarize the progress since Higham's seminal work, paying particular attention to the computation of the \emph{action} of $f(A)$ on a vector $\vb$.  To date, no comprehensive treatment of $f(A)\vb$ exists.   Higham's own work devotes just one chapter to $f(A)\vb$ (\cite[Chapter~13]{high08}); in the same year, a short survey was published by Frommer and Simoncini \cite{frsi08}, and in 2020, a short survey on limited-memory methods was published \cite{gkl20}.  Other notable work includes the pair of ``Nineteen Dubious Ways to Compute the Exponential of a Matrix" papers, but only the most recent iteration includes Krylov subspaces as a method and otherwise provides no further advice on computing the action of the matrix exponential \cite{mova03, mova78}.
+Nearly two decades later, we attempt to summarize the progress since Higham's seminal work, focusing on the computation of the \emph{action} of $f(A)$ on a vector $\vb$, for which no comprehensive treatment currently exists. Higham's mongoraph devotes just one chapter to the computation of $f(A)\vb$ (\cite[Chap.~13]{high08}); in the same year, Frommer and Simoncini~\cite{frsi08} published a short survey, and, in 2020, a short survey on limited-memory methods was published \cite{gkl20}. Krylov subspace methods were absent in the original version of the renowned work ``Nineteen Dubious Ways to Compute the Exponential of a Matrix''~\cite{mova78}; they were included in the subsequent revision~\cite{mova03}, but without further advice on computing the action of the matrix exponential.
 
-This omission is all the more glaring because of the stark differences in computational approaches for $f(A)$ and $f(A)\vb$. At first glance, computing $f(A)\vb$ may seem like nothing more than a two-step process: first evaluate the matrix function $f(A)$, then multiply the resulting matrix by $\vb$. This perspective, while mathematically valid, obscures a fundamental distinction that has profound consequences in practice. In numerical linear algebra, computing $f(A)$ and computing $f(A)\vb$ are two genuinely different tasks, and conflating them leads to algorithms that are, in many realistic settings, entirely impractical.
+This gap is all the more glaring because of the essential differences between evaluating $f(A)$ and $f(A)\vb$. In principle, one could compute $f(A)\vb$ by forming $f(A)$ and then performing a matrix--vector product. But this perspective, while mathematically valid, would lead to algorithms that are entirely impractical in many realistic settings.
 
-For large-scale problems, the most immediate obstacle to forming $f(A)$ explicitly is memory. Computing $f(A)$ means producing and storing a full $n \times n$ matrix, whereas $f(A)\vb$ only requires an $n$-dimensional vector. In many applications, the matrix $A$ is large and sparse, but $f(A)$ is generally dense. Even when $A$ is banded or otherwise structured, $f(A)$ typically fills in, and storing the result requires $\mathcal{O}(n^2)$ memory. For the problem sizes that arise in modern scientific computing, this is practically infeasible. Algorithms that compute $f(A)\vb$ directly circumvent the memory bottleneck by using iterative, often \emph{matrix-free} techniques: they access $A$ only through matrix-vector products and never form $f(A)$ explicitly.
+For large-scale problems, the most immediate obstacle is memory. In many applications, the matrix $A$ is large and sparse, but $f(A)$ is generally dense, even when $A$ is banded or otherwise structured. For the problem sizes that arise in modern scientific computing, forming $f(A)$ explicitly is practically infeasible. Algorithms that compute $f(A)\vb$ directly alleviate this issue by using iterative, often \emph{matrix-free} techniques: they access $A$ only through matrix--vector products and never form $f(A)$ explicitly.
 
-While any algorithm for $f(A)$ can in principle be followed by a multiplication by $\vb$, doing so is unduly expensive and entirely unnecessary. Forming the full matrix function costs at best $\mathcal{O}(n^3)$, whereas many of the algorithms discussed in this survey approximate $f(A)\vb$ at a cost that is a more modest multiple of $n$, provided $A$ is sparse. The gap between these two regimes can be enormous for realistic problem sizes.
+A second difficulty is the computational cost. Forming $f(A)$ requires at best $\mathcal{O}(n^3)$ operations, whereas the asymptotic computational cost of algorithms designed specifically for $f(A)\vb$ is typically a more modest multiple of $n$, as long as $A$ is sparse. The gap between these two regimes can be enormous for realistic problem sizes.
 
-Beyond memory and cost, the two problems also differ in their current state of development. The computation of $f(A)$ is a relatively mature area, supported by authoritative textbooks~\cite{high08},~\cite[Chap.~6]{hojo91},~\cite[Chap.~9]{gova13}, comprehensive software catalogs~\cite{hiho20}, and robust implementations that can be used with minimal configuration, such as the built-in \texttt{expm}, \texttt{sqrtm}, and \texttt{logm} in MATLAB. The computation of $f(A)\vb$, while sharing some theoretical foundations with the full matrix function case, is less uniformly developed: the available algorithms are more diverse, still research prototypes, and often require user expertise to tune parameters appropriately. One goal of this survey is to provide a comprehensive and up-to-date picture of the state of the art in this area, making it accessible to scientists and engineers who encounter $f(A)\vb$ in the wild and need guidance on which methods to use and how. \todo[inline]{KL: Mention \cite{fgls24, hial10}}
+Beyond memory and cost, the two problems also differ in their current state of development. The computation of $f(A)$ is a relatively mature area, supported by authoritative textbooks~\cite{high08},~\cite[Chap.~6]{hojo91},~\cite[Chap.~9]{gova13}, surveys~\cite{hial10}, comprehensive software catalogs~\cite{hiho20}, and robust implementations that can be used with minimal configuration, such as MATLAB's built-in functions \texttt{expm}, \texttt{sqrtm}, and \texttt{logm}. The computation of $f(A)\vb$ is less uniformly developed: the available algorithms are more diverse, and the implementations are often research prototypes that require user expertise to tune parameters appropriately. One goal of this survey is to provide a comprehensive and up-to-date picture of the state of the art in this area, making it accessible to scientists and engineers who need guidance on computing $f(A)\vb$ in a specific setting. \todo[inline]{KL: Mention \cite{fgls24}}
 
-\subsection{Things not in this survey} \label{sec:not_in_survey}
+\subsection{What this survey does not cover} \label{sec:not_in_survey}
 
 Composing a survey on the topic of $f(A)\vb$ has proven to be a massive undertaking.  To stay within scope, we have intentionally and sometimes contentiously chosen to omit some topics.  A list of them follows.
 \begin{itemize}
     \item \emph{Exponential integration.} While this is an extremely active and salient application of $\exp(A)\vb$, the topic itself deserves its own survey.  Indeed, some of our authors are concurrently working on it \cite{bbbc26}. \todo[inline]{Cite expo-int survey as in progress -- just need working title and author list}
     \item \emph{$f(z) = \frac{1}{z - s}$.} This is equivalent to solving a linear system $(A - sI) \vx = \vb$, which is itself a massive field upon which methods for $f(A)\vb$ rely.  As a first but certainly not exhaustive step, we would direct the reader to Saad's book~\cite{saad00}.
-    \item \emph{$f(z) = \sum_{k = 1}^N c_k z^k$.} While matrix polynomials (with scalar or matrix coefficients) form an important backbone in the analysis of many $f(A)\vb$ methods, we do not address here how to efficiently compute polynomials of $A$.  See \cite{glr09} or \cite[Chapter~18]{high08}.
+    \item \emph{$f(z) = \sum_{k = 1}^N c_k z^k$.} While matrix polynomials (with scalar or matrix coefficients) form an important backbone in the analysis of many $f(A)\vb$ methods, we do not address here how to evaluate them efficiently, and we refer the reader to \cite{fasi19}, \cite{liu25}, or \cite[sect.~4.2]{high08}.
     \item \emph{$f(A)\vx = \vb$} Despite being an enticing problem in and of itself, this remains out of scope; see \cite{vand87, hon18}.
     \item \emph{Bivariate matrix functions.} Functions of two matrices are fabulous creatures indeed; see work by Kressner for further reading \cite{kres14, kres19}.
-    \item \emph{Fr\'echet derivatives.} Although Fr\'echet derivatives are important for the development of condition numbers for $f(A)\vb$, they are well addressed by other work.  See~\cite[Section~3]{high08}, as well as \cite{kkrs21,math92}.
+    \item \emph{Fr\'echet derivatives.} Although Fr\'echet derivatives are important for the development of condition numbers for $f(A)\vb$, they are well addressed by other work.  See~\cite[sect.~3]{high08}, as well as \cite{kkrs21,math92}.
     \item \emph{Conditioning of $f(A)\vb$.} The conditioning, sensitivity, and numerical stability analysis of $f(A)\vb$ remain out of scope for this survey.  See Deadman's work for the condition number of $f(A)\vb$~\cite{dead14}.
     \item \emph{Generalized matrix functions.} These are computed very differently from either $f(A)$ or $f(A)\vb$, as they are defined in terms of the singular value decomposition of $A$.  See~\cite{abf16,habe73}.
 \end{itemize}
@@ -130,7 +130,7 @@ As already argued, this survey is the first of its kind on the topic of computin
 
 The survey is organized as follows. We begin by summarizing essential definitions and results from analysis and linear algebra in \Cref{sec:foundations}, which experienced readers can comfortably skip.  In \Cref{sec:applications}, we discuss a wide range of diverse applications where $\fAb$ arises. We then provide a high-level overview of different classes of methods for computing $\fAb$. \Cref{sec:fA_fixed_apriori} focuses on methods that rely on pre-computed polynomial and rational approximations. After that, we cover iterative Krylov subspace methods that build such an approximation on the fly, with \Cref{sec:fA_polynomial_krylov} focusing on polynomial and \Cref{sec:fA_rational_krylov} on rational Krylov methods.
 \todo[inline]{KL: Finish summary (several sections missing)}
-In Section~\ref{sec:structured}, we give an overview of methods for different kinds of structured matrices, in particular Kronecker-structured and hierarchical matrices, as well as Toeplitz matrices. We summarize our conclusions and outlook for future research directions in \Cref{sec:conclusions}.
+In \cref{sec:structured}, we give an overview of methods for different kinds of structured matrices, in particular Kronecker-structured and hierarchical matrices, as well as Toeplitz matrices. We summarize our conclusions and outlook for future research directions in \Cref{sec:conclusions}.
 
 \section{Technical foundations} \label{sec:foundations}
 
@@ -263,7 +263,7 @@ It is well known that the derivatives of a Cauchy--Stieltjes function are given 
 \begin{equation}\label{eq:stieltjes_derivative}\nonumber
 f^{(k)}(z) = (-1)^k k! \int_0^\infty \frac{1}{(z+t)^{k+1}} \d\mu(t) \text{ for all } k \in \mathbb{N}_0,
 \end{equation}
-see, e.g.,~\cite[Section~3]{berg08}. From this, it is apparent that every Cauchy--Stieltjes function\footnote{Or more precisely, its restriction to $\spR^+$.} is completely monotonic.
+see, e.g.,~\cite[sect.~3]{berg08}. From this, it is apparent that every Cauchy--Stieltjes function\footnote{Or more precisely, its restriction to $\spR^+$.} is completely monotonic.
 
 Cauchy--Stieltjes functions arise in a variety of applications, and several well-known functions have a representation of the form~\eqref{eq:stieltjes_function}. A few examples of important functions belonging to this class are \dots
 \begin{itemize}
@@ -365,54 +365,22 @@ In this section, we discuss several important real-world applications that requi
 \subsection{Exponential integrators}\label{sec:exponential_integrators}
 % See survey by Gaudreault \& friends; key applications include numerical weather prediction, time-stepping methods for a host of PDEs and ODEs, well suited for stiff problems, etc.
 
-Exponential time integrators \cite{hoos10} are a family of numerical methods for solving systems of ordinary differential equations, which typically arise after the spatial discretisation of a system of partial differential equations (PDEs):
+Exponential time integrators \cite{hoos10,bbbc26} solve systems of ordinary differential equations
 \begin{equation}
-    \frac{dU}{dt} = F(U), \label{eq:ode}
+    \frac{dU}{dt}=F(U), \label{eq:ode}
 \end{equation}
-where $U \in \mathbb{R}^N$ is the state vector and $N$ denotes the number of degrees of freedom. See \cite{bbbc26} for a survey. Exponential integration methods seek to advance the solution of this system in time by exploiting the structure of $F$ in a way that treats certain parts of the dynamics analytically. They have demonstrated particular potential for problems characterized as \textit{stiff}, in which the solution exhibits rapid changes in some components and slower changes in others, posing a challenge for numerical methods due to the disparate timescales involved \cite{loto13}. Solving such systems with an explicit time integrator can lead to severe stability restrictions on the time step size. While implicit methods permit larger time steps, they incur higher costs per step due to expensive linear solves when the spectrum of the Jacobian matrix is widely spread over the complex plane. Although preconditioning can mitigate these costs, finding an effective preconditioner is itself a nontrivial task. Exponential integrators offer an attractive alternative: they achieve high accuracy and favorable stability properties without the time-step restrictions of explicit schemes, and they can accurately capture both fast and slow dynamics without the artificial damping that often accompanies implicit methods. Furthermore, in certain regimes, they can offer significant computational savings per time step compared to implicit techniques. There are two main approaches to constructing such schemes.
+where $U\in\mathbb{R}^N$ is the state vector. Such systems often arise from spatial discretisation of partial differential equations and can be stiff, leading to severe stability restrictions for explicit methods \cite{loto13}. Exponential integrators treat a linear part of the dynamics analytically, with the main computational task being the evaluation of matrix-function actions.
 
-The first approach \cite{bkv98,coma02} assumes that the right-hand side can be separated into linear and nonlinear parts, so that eq.~\eqref{eq:ode} is rewritten as
-\begin{equation}
-    \frac{dU}{dt} = LU + \mathcal{N}(U), \label{eq:split}
-\end{equation}
-where $L$ is a constant linear operator and $\mathcal{N}(U)$ contains the remaining nonlinear terms. To advance the solution from $U_n = U(n\Delta t)$ to $U_{n+1}$, one multiplies eq.~\eqref{eq:split} by the integrating factor $e^{-Lt}$, which yields the integral relation
-\begin{equation}
-    U_{n+1} = e^{L\Delta t}\, U_n + \int_0^{\Delta t} e^{L(\Delta t - \tau)}\, \mathcal{N}\!\left(U(n\Delta t + \tau)\right) d\tau. \label{eq:exact_split}
-\end{equation}
-Equation~\eqref{eq:exact_split} is an exact solution of the ODE system~\eqref{eq:split}; different numerical schemes arise from different choices for the approximation of the remaining integral \cite{hoos10}. This approach requires that the linear part $L$ be known explicitly, and it is most natural in settings where such a separation is physically motivated, for instance when $L$ governs the propagation of the fast linear modes of the solution.
+Exponential integrators commonly use either a fixed splitting $F(U)=LU+\mathcal{N}(U)$, with a constant linear operator $L$ \cite{bkv98,coma02}, or a local linearisation about $U_n$ using the Jacobian $J_n=\partial F/\partial U$ evaluated at $t_n$ \cite{tokm06,hos09}. In both cases, variation of constants gives an integral representation in which the linear part is treated exactly and the nonlinear contribution is approximated to obtain a numerical scheme \cite{hoos10,dato25}. The following examples use the Jacobian-based approach, with $U_n$ approximating $U(t_n)$, $t_n=n\Delta t$, and $F_n=F(U_n)$.
 
-An alternative approach, described in detail in \cite{tokm06,hos09}, avoids the need for an explicit partitioning of the right-hand side. Instead, the forcing $F(U)$ in eq.~\eqref{eq:ode} is expanded about the current time $t_n = n\Delta t$:
+A simple example is the second-order exponential propagation iterative scheme EPI2 \cite{tokm06}, also known as the exponential Rosenbrock--Euler or exponentially fitted Euler method
 \begin{equation}
-    \frac{dU(t)}{dt} = F(U_n) + J_n\!\left(U(t) - U_n\right) + R(U(t)), \label{eq:jacobian_expand}
+    U_{n+1}=U_n+\varphi_1(\Delta t J_n)\,\Delta t F_n. \label{eq:epi2}
 \end{equation}
-where $J_n$ is the Jacobian matrix $\partial F / \partial U^T$ evaluated at $t_n$, and $R(U(t))$ collects all the higher-order remainder terms:
-\begin{equation}
-    R(U(t)) = F(U(t)) - F(U_n) - J_n\!\left(U(t) - U_n\right). \label{eq:remainder}
-\end{equation}
-Multiplying eq.~\eqref{eq:jacobian_expand} by the integrating factor $e^{-J_n t}$ and integrating from $0$ to $\Delta t$ yields the exact relation
-\begin{equation}
-     U_{n+1} = U_n + J_{n}^{-1}(e^{\Delta t J_{n}} - I) F_{n} + \int_{t_n}^{t_n + \Delta t} e^{(t_n + \Delta t - t)J_n} R(U(t))\, dt,
-    \label{eq:voltera}
-\end{equation}
-where $F_n = F(U_n)$. As with eq.~\eqref{eq:exact_split}, this is an exact integral form of the solution and different numerical schemes arise depending on how the nonlinear integral in~\eqref{eq:voltera} is approximated \cite{dato25}.
+where $\varphi_1(z)=(e^z-1)/z$ for $z\ne0$.
+For autonomous linear systems, this method reproduces the exact solution when the matrix exponential is evaluated exactly and is therefore A-stable. Nonlinear stability requires further analysis. Replacing $J_n$ by a simpler operator representing the stiff processes can reduce the cost of the matrix-function evaluation, but generally loses exactness for linear systems and may introduce a time-step restriction.
 
-The primary advantage of this approach is its ability to dynamically leverage the system's full Jacobian, rather than relying on a fixed decomposition where the linear term is assumed to capture the stiffness. Because utilizing the Jacobian generally enhances the stability of the time integration scheme, we focus exclusively on these methods for the remainder of this section.
-
-This family of exponential Rosenbrock methods \cite{tokm06} is exemplified by the following two multistep schemes. The first is the second-order exponential propagation iterative (EPI) scheme EPI2, obtained by neglecting the integral remainder term entirely:
-\begin{equation}
-    U_{n+1} = U_n + \left(e^{J_n \Delta t} - I\right) J_n^{-1} F_n. \label{eq:epi2_raw}
-\end{equation}
-This scheme is also known as the \emph{exponential Rosenbrock--Euler} method or the \emph{exponentially fitted Euler} method. For an autonomous linear system of ODEs, EPI2 reduces to the exact solution when the matrix exponential is computed exactly. The method is therefore A-stable. For nonlinear problems, stability requires further analysis and depends on the properties of the differential equation.
-
-The cost of evaluating the matrix functions may be reduced by replacing the Jacobian with a simpler operator representing the stiff processes. This gives a splitting similar to that in \eqref{eq:split}, with the remaining terms treated through the remainder. Such an approximation can be useful when the operator has a structure that simplifies the matrix-function evaluation. However, the exactness for linear systems is generally lost, and the terms omitted from the operator may impose a time-step restriction. 
-
-The second scheme is the third-order EPI3 \cite{tokm06}, which accounts for the nonlinear remainder through information from the previous time level:
-\begin{equation}
-    U_{n+1} = U_n + \left(e^{J_n \Delta t} - I\right) J_n^{-1} F_n + \frac{2}{3}\,\Delta t\!\left(e^{J_n \Delta t} - I - J_n \Delta t\right)\!(J_n \Delta t)^{-2} R^{n-1}, \label{eq:epi3_raw}
-\end{equation}
-where $R^{n-1} = F^{n-1} - F_n - J_n(U^{n-1} - U_n)$ is the remainder~\eqref{eq:remainder} approximated using data from the previous time step. The additional term captures the leading-order nonlinear correction to the linearised trajectory and raises the order of the scheme from two to three.
-
-The expressions appearing in eqs.~\eqref{eq:epi2_raw} and \eqref{eq:epi3_raw} belong to a particular family of functions that arise naturally throughout the construction of exponential integrators. These are the so-called $\varphi$-functions, defined for a complex argument $z$ as
+Higher-order exponential integrators approximate the nonlinear remainder using previous time levels in multistep methods or intermediate stages in Runge--Kutta-type methods \cite{hoos10}. Both types of methods are commonly expressed using the $\varphi$-functions, which arise from integrating polynomial approximations of the nonlinear contribution:
 \begin{equation}\label{eq:phi_functions}
 \begin{split}
 \varphi_0(z) &= e^{z}, \\
@@ -424,35 +392,12 @@ These functions are entire and admit an extension to matrix arguments via the Ta
 \begin{equation*}
 \varphi_\mu(M) = \sum_{i=0}^\infty \frac{M^i}{(i+\mu)!}, \quad \forall\, \mu \in \mathbb{N}^{\ge 0}.
 \end{equation*}
-For matrix arguments, the first three $\varphi$-functions take the explicit forms $\varphi_0(A) = e^A$, $\varphi_1(A) = (e^A - I)A^{-1}$, and $\varphi_2(A) = (e^A - I - A)A^{-2}$.
 
-Using the $\varphi$-functions, the EPI2 and EPI3 schemes in eqs.~\eqref{eq:epi2_raw} and \eqref{eq:epi3_raw} can be written in the cleaner and more computationally transparent forms
-\begin{equation}
-    U_{n+1} = U_n + \varphi_1(\Delta t J_n)\,\Delta t F_n, \label{eq:epi2}
-\end{equation}
-and
-\begin{equation}
-    U_{n+1} = U_n + \varphi_1(\Delta t J_n)\,\Delta t F_n + \frac{2}{3}\,\varphi_2(\Delta t J_n)\,\Delta t R^{n-1}. \label{eq:epi3}
-\end{equation}
-The first scheme~\eqref{eq:epi2} advances the solution using only $\varphi_1$ acting on the current forcing, while the second scheme~\eqref{eq:epi3} supplements this with a $\varphi_2$ correction driven by the nonlinear remainder from the previous step. The $\varphi$-function notation makes explicit which functions of the matrix $\Delta t J_n$ must be computed, and facilitates the use of numerical algorithms for their evaluation.
-
-Exponential integrators of Runge--Kutta type use intermediate stage values to approximate the nonlinear remainder within a single time step. An example is the three-stage, fourth-order scheme EPIRK4s3, derived using stiff order conditions \cite{ratok17}:
-\begin{align}
-    U_{n2} &= U_n + \frac{1}{8}\varphi_1\!\left(\frac{1}{8}\Delta t J_n\right)\Delta t F_n, \nonumber\\
-    U_{n3} &= U_n + \frac{1}{9}\varphi_1\!\left(\frac{1}{9}\Delta t J_n\right)\Delta t F_n, \nonumber\\
-    U_{n+1} &= U_n + \varphi_1(\Delta t J_n)\Delta t F_n \nonumber\\
-    &\quad + \bigl(1892\varphi_3(\Delta t J_n)-42336\varphi_4(\Delta t J_n)\bigr)\Delta t R(U_{n2}) \nonumber\\
-    &\quad + \bigl(1458\varphi_3(\Delta t J_n)-34992\varphi_4(\Delta t J_n)\bigr)
-    \Delta t\bigl(R(U_{n3})-2R(U_{n2})\bigr).
-    \label{eq:epirk4s3}
-\end{align}
-Here, $R$ is the nonlinear remainder defined in \eqref{eq:remainder}. The internal stages depend on the same vector $F_n$, while the final update combines several $\varphi$-function actions. We discuss below how this structure can be exploited when evaluating these actions.
-
-All of the methods presented above require the evaluation of expressions of the general form
+Exponential integrators require linear combinations of matrix-function actions of the form
 \begin{equation}
     \varphi_0(A)b_0 + \varphi_1(A)b_1 + \cdots + \varphi_p(A)b_p \label{eq:ansatz}
 \end{equation}
-for some set of vectors $b_k \in \mathbb{R}^N$, $k = 0, 1, \ldots, p$. For high-order methods, computing these terms one by one is prohibitively expensive, since it requires evaluating the action of $p$ functions on $p$ vectors. An efficient approach to avoid this consists of reformulating the problem as the solution of a non-autonomous linear ODE. Specifically, the expression~\eqref{eq:ansatz} is recovered by solving the initial value problem \cite{skwr09}
+for some set of vectors $b_k \in \mathbb{R}^N$, $k = 0, 1, \ldots, p$. Rather than evaluating the terms separately, one can recover the combination~\eqref{eq:ansatz} by solving the non-autonomous linear initial value problem \cite{skwr09}
 \begin{equation}
     u'(\tau) = A\,u(\tau) + b_1 + \tau\,b_2 + \cdots + \frac{\tau^{p-1}}{(p-1)!}\,b_p, \qquad u(0) = b_0, \label{eq:phipm_ode}
 \end{equation}
@@ -470,52 +415,21 @@ W = (\tau^{-p}b_p, \tau^{1-p}b_{p-1}, \dots, \tau^{-1}b_1) \in \mathbb{C}^{N \ti
 \end{equation}
 and $e_p$ represents the $p$-th column of the identity matrix $I_p$ , and the symbol $0$ denotes a null matrix of the appropriate dimensions.
 
-The efficiency of an exponential integrator depends both on the numerical scheme and on the algorithm used to evaluate the matrix-function actions. The scheme EPIRK4s3 in \eqref{eq:epirk4s3} illustrates this connection. Evaluating each stage separately would require three calls to an adaptive Krylov solver. However, the two internal stages can be computed in a single call, followed by a second call for the final update.
+The three-stage, fourth-order scheme EPIRK4s3 illustrates how the time integrator and the matrix-function solver can be used together to group the required actions efficiently \cite{ratok17}:
+\begin{align}
+    U_{n2} &= U_n + \frac{1}{8}\varphi_1\!\left(\frac{1}{8}\Delta t J_n\right)\Delta t F_n, \nonumber\\
+    U_{n3} &= U_n + \frac{1}{9}\varphi_1\!\left(\frac{1}{9}\Delta t J_n\right)\Delta t F_n, \nonumber\\
+    U_{n+1} &= U_n + \varphi_1(\Delta t J_n)\Delta t F_n \nonumber\\
+    &\quad + \bigl(1892\varphi_3(\Delta t J_n)-42336\varphi_4(\Delta t J_n)\bigr)\Delta t R(U_{n2}) \nonumber\\
+    &\quad + \bigl(1458\varphi_3(\Delta t J_n)-34992\varphi_4(\Delta t J_n)\bigr)
+    \Delta t\bigl(R(U_{n3})-2R(U_{n2})\bigr),
+    \label{eq:epirk4s3}
+\end{align}
+where $R(U)=F(U)-F(U_n)-J_n(U-U_n)$ is the nonlinear remainder.
 
-The two internal stages can share a solver call because both require the action of $\varphi_1$ on the same vector, evaluated at two different values of its scalar argument. Setting $A=\Delta t J_n$, $b_1=\Delta t F_n$, and all other $b_i=0$ in \eqref{eq:phipm_sol} gives
-\begin{equation}\label{eq:epirk4s3_internal_action}
-    v(\tau)=\tau\varphi_1(\tau A)b_1.
-\end{equation}
-A single solver call over $[0,1/8]$, with output at $\tau=1/9$ and $\tau=1/8$, therefore provides both stage increments:
-\begin{equation}
-    U_{n2}=U_n+v(1/8),\qquad U_{n3}=U_n+v(1/9).
-\end{equation}
-The factors multiplying $\varphi_1$ in the scheme coincide with the factors $\tau$ in this representation, so no additional rescaling is required.
+Evaluating each stage separately requires three solver calls, but the two internal stages can share one call because they use the same vector $F_n$. Setting $A=\Delta t J_n$, $b_1=\Delta t F_n$, and all other $b_i=0$ in \eqref{eq:phipm_sol} gives $u(\tau)=\tau\varphi_1(\tau A)b_1$. A single adaptive solve over $[0,1/8]$, with output at $\tau=1/9$ and $\tau=1/8$, therefore gives both stage increments. Once $R(U_{n2})$ and $R(U_{n3})$ are available, the final update is a linear combination of the form~\eqref{eq:ansatz} with $p=4$ and can be evaluated in a second call at $\tau=1$.
 
-Once the internal stages are available, their nonlinear remainders can be combined before the final solver call. Define $R_2=R(U_{n2})$ and $R_3=R(U_{n3})$, and choose
-\begin{equation}\label{eq:epirk4s3_vectors}
-\begin{aligned}
-    b_0&=b_2=0,\\
-    b_1&=\Delta t F_n,\\
-    b_3&=\Delta t\bigl[1892R_2+1458(R_3-2R_2)\bigr],\\
-    b_4&=\Delta t\bigl[-42336R_2-34992(R_3-2R_2)\bigr].
-\end{aligned}
-\end{equation}
-A second call evaluates
-\begin{equation}\label{eq:epirk4s3_final_action}
-    w(\tau)=\tau\varphi_1(\tau A)b_1
-       +\tau^3\varphi_3(\tau A)b_3
-       +\tau^4\varphi_4(\tau A)b_4
-\end{equation}
-at $\tau=1$, giving $U_{n+1}=U_n+w(1)$.
-
-In this implementation, the matrix-function solver performs two types of tasks: evaluating a single function acting on a vector at several scalar arguments, and evaluating a linear combination of different function actions at a common argument. Grouping the computations in this way reduces the number of separate solver calls within each time step. 
-
-Besides reducing the number of solver calls, the choice of algorithm for each evaluation is important for the overall efficiency. Methods for computing linear combinations of the form~\eqref{eq:ansatz} include Taylor series methods~\cite{alhi11, lyl22, almo25a}, Leja interpolation~\cite{ckor16,deei22,det23}, rational approximation methods~\cite{best24}, and Krylov subspace methods~\cite{gasa92,grt18,lisc26,niwr12,saad92,sidj98,tgt26}, each offering different trade-offs in terms of computational cost, and suitability for large-scale problems.
-
-\todo[inline]{SG: maybe we should move this elsewhere?}
-To conclude this subsection, we note a useful property of the $\varphi$-functions that is often used to evaluate them on the small projected matrices arising in Krylov subspace methods. These functions satisfy the modified squaring relation
-\begin{equation}\label{eq:phi_modified_squaring}
-    \varphi_\ell(2A)
-    = \frac{1}{2^\ell}
-      \left(
-        \varphi_0(A)\varphi_\ell(A)
-        + \sum_{i=1}^{\ell}
-          \frac{\varphi_i(A)}{(\ell-i)!}
-      \right),
-    \qquad \ell\geq0.
-\end{equation}
-For $\ell=0$, the sum is empty and the relation reduces to $e^{2A}=(e^A)^2$. For $\ell\geq1$, it provides an extension of the scaling-and-squaring procedure to the $\varphi$-functions \cite{skwr09}. The functions are first evaluated at a scaled matrix $2^{-s}A$, and repeated application of \eqref{eq:phi_modified_squaring} recovers their values at $A$.
+This example illustrates two tasks required of a matrix-function solver: evaluating a single function action at several scalar arguments and evaluating a linear combination of different function actions at a common argument. Methods for these computations include Taylor series methods~\cite{alhi11,lyl22,almo25a}, Leja interpolation~\cite{ckor16,deei22,det23}, rational approximation methods~\cite{best24}, and Krylov subspace methods~\cite{gasa92,grt18,lisc26,niwr12,saad92,sidj98,tgt26}.
 
 \subsection{Fractional differential equations}\label{sec:fractional_differential_equations}
 
@@ -664,43 +578,29 @@ Thus, projecting a given vector $\vb$ on the eigenspace corresponds to computing
 Closely related are the problems of computing approximate spectral distributions (i.e., the distribution of all eigenvalues of $A$ along the real line)~\cite{bkm22} or of identifying gaps in the spectrum of $A$~\cite{brs26}, both of which can also be phrased in terms of trace estimation for matrix functions.
 
 \subsection{Sparse approximations and trace or diagonal estimation}\label{sec:fA_kernel}
-In some applications, one is not genuinely interested in $f(A)\vb$ or $\vb^Hf(A)\vb$, but these actions and quadratic forms are rather used as kernels in an algorithm for obtaining an approximation to the whole matrix function $f(A)$ or some related quantity like its diagonal, trace or determinant.
+In some applications, the action $f(A)\vb$ or quadratic forms $\vb^Hf(A)\vb$ are only used as kernels for approximating the entire matrix function $f(A)$ or related quantities such as its diagonal, trace or determinant.
 
-The most prominent example of such an algorithm is probably the classical Girard-Hutchinson estimator, which provides a randomized approximation to $\tr(f(A))$ without forming $f(A)$ explicitly~\cite{hutc89}.
-
-It is based on the observation that if $\vz$ is a vector with i.i.d.\ zero-mean,
-unit-variance entries (e.g., Rademacher or Gaussian), we have $\mathbb{E}[\vz^T B \vz] = \tr(B)$ for any square matrix $B$. Thus, with random sample vectors $\vz_1,\dots,\vz_m$ one approximates
+A prominent example is the classical Girard--Hutchinson estimator, which approximates $\tr(f(A))$ without explicitly forming $f(A)$~\cite{hutc89}. It exploits the identity $\mathbb{E}[\vz^T B\vz]=\tr(B)$ for random vectors $\vz$ with i.i.d.\ zero-mean, unit-variance entries (e.g., Rademacher or Gaussian), yielding the unbiased estimator
 \begin{equation}\label{eq:girard_hutchinson}
-\tr(f(A)) \approx \frac{1}{m} \sum_{i=1}^m \vz_i^T f(A)\vz_i,
+\tr(f(A)) \approx \frac{1}{m}\sum_{i=1}^m\vz_i^T f(A)\vz_i,
 \end{equation}
-which is an unbiased estimate whose variance decreases as $\mathcal{O}(1/m)$. The quadratic forms in~\eqref{eq:girard_hutchinson} can be computed with any of the methods discussed in \Crefrange{sec:fA_fixed_apriori}{sec:fA_rational_krylov} below.
-
-A similar idea to~\eqref{eq:girard_hutchinson} can also be used to approximate the entire diagonal of $f(A)$, via the estimator
+whose variance decreases as $\mathcal{O}(1/m)$. The required quadratic forms can be computed using the methods discussed in \Cref{sec:bilinear_form} below. Similarly, the diagonal of $f(A)$ can be approximated by
 \begin{equation}\label{eq:girard_hutchinson_diag}
-\diag(f(A)) \approx \left(\sum_{i=1}^m \vz_i \circ (f(A)\vz_i)\right) \oslash \left(\sum_{i=1}^m \vz_i \circ \vz_i\right),
+\diag(f(A)) \approx \left(\sum_{i=1}^m \vz_i \circ \big(f(A)\vz_i\big)\right) \oslash \left(\sum_{i=1}^m \vz_i \circ \vz_i\right),
 \end{equation}
-where $\circ$ and $\oslash$ denote entry-wise multiplication and division, respectively. We brief\/ly mention that there exist several modern variants and improvements of the estimators~\eqref{eq:girard_hutchinson} and~\eqref{eq:girard_hutchinson_diag} which are provably more efficient, e.g., Hutch++~\cite{mmmw21,pcm26,pck22}, XTrace~\cite{etw24} or Diag++~\cite{bana22}. At their heart, they all rely on the computation of quadratic forms and/or matrix-vector products with $f(A)$; thus, they benefit from the algorithms discussed in this survey. We also refer the reader to~\cite{chha23}, where variants of trace estimation algorithms are discussed that explicitly take into account that matrix-vector products are approximated by (block) Krylov methods, which can lead to more efficient implementations.
+where $\circ$ and $\oslash$ denote entry-wise multiplication and division. More efficient variants of these estimators include Hutch++~\cite{mmmw21,pck22}, XTrace~\cite{etw24} and Diag++~\cite{bana22}. All these methods rely on matrix-vector products or quadratic forms involving $f(A)$. In~\cite{chha23}, trace estimators are specifically adapted to approximate matrix-vector products computed by (block) Krylov methods.
 
-Sometimes, one might even be interested in computing a sparse approximation for $f(A)$ itself. In~\cite{fss21}, such a sparse approximation is introduced based on the so-called \emph{probing} methodology originally introduced for diagonal estimation in~\cite{tasa11}. For a given distance threshold $d$, these methods are based on first computing a distance-$2d$ coloring of the graph of $A$ (i.e., a coloring where no two nodes at a distance $\leq 2d$ share a color), which induces a partitioning
-\[
-\{1,\dots,n\}=V_1 \cup \ldots \cup V_m, ,\qquad V_k \cap V_\ell = \emptyset \text{ for } k \neq \ell.
-\]
-Based on this, one defines the \emph{probing vectors}
-\[
-\vv_\ell:=\sum\limits_{i\in V_\ell} e_i. \qquad \ell \in \{1,\ldots,m\}
-\]
-and the corresponding sparse approximation $\widetilde{F}$ for $f(A)$,
+Another task is constructing a sparse approximation to $f(A)$ itself. The approach in~\cite{fss21} builds upon the \emph{probing} methodology originally developed for diagonal estimation~\cite{tasa11}. Given a distance threshold $d$, one computes a distance-$2d$ coloring of the graph of $A$, inducing a partition $\{1,\dots,n\}=V_1\cup\cdots\cup V_m$, where all nodes in the same set have at least distance $2d$ from each other. Defining the \emph{probing vectors} $\vv_\ell:=\sum_{i\in V_\ell}\ve_i, \ell = 1,\dots,m$, a sparse approximation to $f(A)$ is obtained as
 \begin{equation}\label{eq:probing_sparse_approximation}
- \widetilde{F}_{ij}:=
- \begin{cases}
-    [f(A)\vv_\ell]_i \text{ for } j \in V_\ell &\text{ if } \text{dist}(i,j) \leq d, \\
-    0 &\text{ if } \text{dist}(i,j) > d.
-    \end{cases}
+\widetilde{F}_{ij}:=
+\begin{cases}
+[f(A)\vv_\ell]_i, & \text{if } j\in V_\ell \text{ and } \mathrm{dist}(i,j)\leq d,\\
+0, & \text{if } \mathrm{dist}(i,j)>d.
+\end{cases}
 \end{equation}
-Forming the approximation~\eqref{eq:probing_sparse_approximation} requires forming a total of $m$ matrix-vector products with $f(A)$, which is again typically done by one of the algorithms discussed in this paper. In addition to sparse approximation, probing methods can also be employed for trace estimation; see~\cite{frs24,fss21,hms25}.
+Thus, constructing $\widetilde{F}$ requires $m$ matrix-vector products with $f(A)$. Probing methods can also be used for trace estimation~\cite{frs24,fss21,hms25}.
 
-Several extensions and generalizations of the above approach have been considered, e.g., in~\cite{ackh26,pana26}, where ideas from compressed sensing are used to approximate a general matrix $B$ (which might be a matrix function $B = f(A)$ or some other implicitly given matrix) from matrix vector products $B\vx$. In~\cite{pcm26}, instead of computing a \emph{sparse} approximation of $f(A)$ from matrix-vector products, the authors develop a variant of the randomized SVD based on a block Krylov method for obtaining a \emph{low-rank} approximation of $f(A)$.
-
+Further generalizations use ideas from compressed sensing to reconstruct implicitly given matrices $B$, including matrix functions $B=f(A)$, from products $B\vx$~\cite{ackh26,pana26}. Instead of a sparse approximation, the approach in~\cite{pcm26} employs a randomized SVD combined with a block Krylov method to obtain a low-rank approximation of $f(A)$.
 
 \subsection{Other applications}
 We conclude this section by providing references to other uses of matrix functions in application problems that we cannot cover in detail due to space constraints.
@@ -849,7 +749,7 @@ This recurrence also translates into a direct recurrence for the approximations 
 \end{equation*}
 with the vectors $\vx_j = \vy_{j+1}-\vy_j$.
 
-A crucial aspect when using the Faber approximation~\eqref{eq:faber_approx} in practice is determining a suitable set $\Omega$ that contains $\spec(A)$. If such a region is not known from properties of an underlying continuous problem, it is proposed in~\cite[Section~6]{mono01} to use an iterative algorithm (e.g., the Arnoldi method) to compute some selected eigenvalues of $A$ and use these to guide the choice of $\Omega$. It is noted that particularly when $f$ is an entire function, crude estimates may still lead to good practical performance. However, in cases where $f$ has singularities and the spectral region of $A$ is hard to estimate, the applicability of the Faber transform approach is greatly limited.
+A crucial aspect when using the Faber approximation~\eqref{eq:faber_approx} in practice is determining a suitable set $\Omega$ that contains $\spec(A)$. If such a region is not known from properties of an underlying continuous problem, it is proposed in~\cite[sect.~6]{mono01} to use an iterative algorithm (e.g., the Arnoldi method) to compute some selected eigenvalues of $A$ and use these to guide the choice of $\Omega$. It is noted that particularly when $f$ is an entire function, crude estimates may still lead to good practical performance. However, in cases where $f$ has singularities and the spectral region of $A$ is hard to estimate, the applicability of the Faber transform approach is greatly limited.
 
 The use of truncated Faber series specifically in the context of exponential integrators is demonstrated in~\cite{bcv02,kls21,nova02,rps24}. An in-depth treatment of approximation properties of Faber polynomials can be found in~\cite{bere09}, albeit with a focus on error estimation instead of computational algorithms.
 
@@ -873,9 +773,9 @@ where the vectors $\vv_j$ satisfy
 \begin{equation}\label{eq:recurrence_least_squares}
 \beta_j\vv_j=A\vv_{j-1}-\alpha_{j-1}\vv_{j-1}-\beta_{j-1}\vv_{j-2}.
 \end{equation}
-To avoid numerical quadrature for computing the coefficients $\alpha_j,\beta_j,\gamma_j$,~\cite{cas11} proposes replacing $f$ by a cubic spline $s$ interpolating $f$ at knots $z_0<\dots<z_k$, with $[\lmin,\lmax]\subseteq[z_0,z_k]$. Exploiting the piecewise polynomial structure of $s$ and a connection to Gauss--Chebyshev quadrature, all coefficients required for approximating $s(A)\vb$ can then be computed analytically; see~\cite[Section~3]{cas11}.
+To avoid numerical quadrature for computing the coefficients $\alpha_j,\beta_j,\gamma_j$,~\cite{cas11} proposes replacing $f$ by a cubic spline $s$ interpolating $f$ at knots $z_0<\dots<z_k$, with $[\lmin,\lmax]\subseteq[z_0,z_k]$. Exploiting the piecewise polynomial structure of $s$ and a connection to Gauss--Chebyshev quadrature, all coefficients required for approximating $s(A)\vb$ can then be computed analytically; see~\cite[sect.~3]{cas11}.
 
-The overall error depends on both the polynomial approximation degree $m$ and the quality of the spline approximation, making the choice of knots particularly important for functions with singularities or branch cuts. For example, to better resolve $f(z)=z^{-1/2}$ near the origin,~\cite[Section~5.2]{cas11} proposes the graded mesh
+The overall error depends on both the polynomial approximation degree $m$ and the quality of the spline approximation, making the choice of knots particularly important for functions with singularities or branch cuts. For example, to better resolve $f(z)=z^{-1/2}$ near the origin,~\cite[sect.~5.2]{cas11} proposes the graded mesh
 \[
 z_0=\frac{\lmin}{1+a},\qquad z_\ell=(1+a)^\ell z_0,\quad \ell=1,\dots,k,
 \]
@@ -1034,7 +934,7 @@ We mention in passing that some of the approaches summarized in the following we
 
 Early contour-quadrature methods for matrix functions arose in the numerical solution of parabolic evolution equations~\cite{sst00,sst03}. Related methods for the matrix exponential build on numerical inverse Laplace transformation, notably Talbot's method~\cite{talbot79}. Trapezoidal quadrature along parabolic, hyperbolic, and Talbot-type contours yields rational approximations to the exponential with geometric convergence~\cite{tws06,wetr07}; the connection to rational approximation on the negative real axis is examined in detail in~\cite{tws06}. Such contour methods were also developed for the $\varphi$-functions occurring in exponential integrators~\cite{sctr07}.
 
-For functions with branch cuts or singularities, such as fractional powers and the logarithm, an influential approach was introduced in~\cite{hht08}. For matrices with real positive eigenvalues in $[\lmin,\lmax]$, a conformal mapping based on Jacobi elliptic functions transforms the Cauchy integral into a form amenable to the periodic trapezoidal rule. The resulting approximations converge geometrically with error of order $\mathcal O\bigl(\exp(-\pi^2\ell/(\log(\lmax/\lmin)+3))\bigr)$, so that the convergence rate deteriorates only logarithmically when the spectral interval grows. For the square root~\cite[Section 4]{hht08} proposes a modification which doubles the convergence exponent. The connection to rational approximations  is discussed explicitly in~\cite[Section~5]{hht08}.
+For functions with branch cuts or singularities, such as fractional powers and the logarithm, an influential approach was introduced in~\cite{hht08}. For matrices with real positive eigenvalues in $[\lmin,\lmax]$, a conformal mapping based on Jacobi elliptic functions transforms the Cauchy integral into a form amenable to the periodic trapezoidal rule. The resulting approximations converge geometrically with error of order $\mathcal O\bigl(\exp(-\pi^2\ell/(\log(\lmax/\lmin)+3))\bigr)$, so that the convergence rate deteriorates only logarithmically when the spectral interval grows. For the square root~\cite[sect.~4]{hht08} proposes a modification which doubles the convergence exponent. The connection to rational approximations  is discussed explicitly in~\cite[sect.~5]{hht08}.
 
 Much subsequent work addresses fractional powers of positive operators. For $0<\alpha<1$, the Stieltjes representation of $z^{-\alpha}$ becomes, after setting $t=e^s$,
 \begin{equation}\label{eq:fractional_power_sinc_integral}
@@ -1129,7 +1029,7 @@ Let $A$ be Hermitian positive semidefinite with $\mathcal W(A)\subseteq[0,4\rho]
 \end{equation}
 \end{theorem}
 
-While the original proof uses contour integration,~\cite[Section~4]{bere09} obtains an essentially equivalent result from polynomial approximation. In particular,~\Cref{thm:convergence_exp_holu} guarantees superlinear convergence independently of the eigenvalue distribution. Such behavior is characteristic of the exponential and, more generally, entire functions of order one~\cite[Theorem~4.2]{eier06}; for other functions, it is often tied to eigenvalue clusters or outliers. Related refinements for approximating $\exp(-tA)\vb$ via a rational function followed by a Krylov method are discussed in~\cite{losi06,wuwe10}.
+While the original proof uses contour integration,~\cite[sect.~4]{bere09} obtains an essentially equivalent result from polynomial approximation. In particular,~\Cref{thm:convergence_exp_holu} guarantees superlinear convergence independently of the eigenvalue distribution. Such behavior is characteristic of the exponential and, more generally, entire functions of order one~\cite[Theorem~4.2]{eier06}; for other functions, it is often tied to eigenvalue clusters or outliers. Related refinements for approximating $\exp(-tA)\vb$ via a rational function followed by a Krylov method are discussed in~\cite{losi06,wuwe10}.
 
 For Stieltjes functions (cf.~\Cref{sec:complete_monotonicity}), the following bound instead predicts linear convergence.
 
@@ -1194,7 +1094,7 @@ The behavior of the Lanczos method in FPA is understood through the \emph{loss o
 
 The effects of rounding errors on $\vf_m$ have been analyzed for some matrix functions in \cite{dgk98} (see also \cite{drkn95}).
 More recently in \cite{mms18}, the error of $\vf_m$ was bounded in FPA, up to a factor of order $m$ and a small additive term, by the error of the best degree-$(m-1)$ polynomial approximation of $f$ in the uniform norm on a perturbed interval containing the spectrum of $A$.
-A more refined analysis, valid for functions analytic in a neighborhood of the eigenvalues of $A$ and of the tridiagonal matrix $H_m$ computed by Lanczos method in FPA, was given in \cite[Section~5]{cgmm22}. Let $w\in\mathbb{R}$ be a shift not in the spectra of $A$ and $H_m$, and let $\Gamma$ be a union of simple closed curves enclosing these spectra and contained in that neighborhood. Then the following bound holds\footnote{Note that \cite[p.~802]{cgmm22} contains a misprint in the bound.}:
+A more refined analysis, valid for functions analytic in a neighborhood of the eigenvalues of $A$ and of the tridiagonal matrix $H_m$ computed by Lanczos method in FPA, was given in \cite[sect.~5]{cgmm22}. Let $w\in\mathbb{R}$ be a shift not in the spectra of $A$ and $H_m$, and let $\Gamma$ be a union of simple closed curves enclosing these spectra and contained in that neighborhood. Then the following bound holds\footnote{Note that \cite[p.~802]{cgmm22} contains a misprint in the bound.}:
 \begin{equation}\label{eq:fpa:bound}
 \begin{split}
 \|f(A)\mathbf{b} - \vf_m\|
@@ -1215,11 +1115,11 @@ The second term in \eqref{eq:fpa:bound} can be interpreted as an upper bound on 
 Given the role of linear systems in this analysis, in the following we briefly present the related main results and updates on the stability of the Lanczos method in the context of linear systems.
 The key tool is the backward error analysis described in \cite{gree89}, where a crucial result is given in Theorem~1', which can be rephrased as follows: the tridiagonal matrix $H_m$ produced by an FPA Lanczos recurrence coincides with the one produced by an \emph{exact arithmetic} Lanczos recurrence applied to a generally larger matrix $\tilde A$, whose eigenvalues are clustered in small neighborhoods of the eigenvalues of $A$. It is important to note that $H_m$ is the tridiagonal matrix formed by collecting the computed coefficients of the Lanczos three-term recurrence, and not the projected matrix $V_m^H A V_m$, which in FPA is typically no longer tridiagonal.
 As a consequence, the stability of the Lanczos method depends strongly on the eigenvalue distribution of $A$, as exemplified in \cite{stra91}\footnote{Strakoš matrices were tested on the Conjugate Gradient method, but the observed behavior is clearly connected to that of the Lanczos method; see, e.g., \cite{chen26} for more recent tests on the Lanczos method.}; see also \cite{chtr24}, where the Lanczos method is shown to be forward stable under assumptions typically satisfied by many large random matrix models.
-We refer also to \cite{chen26}, where Chen presented a description of the analyses by Paige and Greenbaum that simplifies their proofs while preserving their core ideas; see also \cite[Chapter~4]{chen24}.
+We refer also to \cite{chen26}, where Chen presented a description of the analyses by Paige and Greenbaum that simplifies their proofs while preserving their core ideas; see also \cite[Chap.~4]{chen24}.
 
 Building on these results, Greenbaum \cite{gree89,gree97} showed that, despite the loss of orthogonality in $V_m$, convergence still occurs for linear systems, i.e., $f(x)=1/x$; see also the results for the Conjugate Gradient method \cite{grst92,mest06,list13,cls24}. Moreover, the upper bounds derived in exact arithmetic are not lost but must be applied to the perturbed problem with matrix $\tilde A$. This backward analysis can then explain the convergence delay for linear systems and, through \eqref{eq:fpa:bound}, for matrix functions, whose error is controlled by the FPA error of a single shifted linear system.
 
-Finally, we point out a close connection between the Lanczos approximation $\vf_m$ and Gauss quadrature \cite{gome09} (see Sections~\ref{sec:errest_integration_quadrature} and \ref{sec:bilinear_form}): both are determined by the same tridiagonal matrix $H_m$, so the sensitivity of $\vf_m$ to perturbations in FPA is closely related to the sensitivity of the Gauss quadrature \cite{ost07}. %This connection also plays a role in understanding the $A$-norm of the error of the Conjugate Gradient method \cite{kn96,stti02,list13}.
+Finally, we point out a close connection between the Lanczos approximation $\vf_m$ and Gauss quadrature \cite{gome09} (see \cref{sec:errest_integration_quadrature,sec:bilinear_form}): both are determined by the same tridiagonal matrix $H_m$, so the sensitivity of $\vf_m$ to perturbations in FPA is closely related to the sensitivity of the Gauss quadrature \cite{ost07}. %This connection also plays a role in understanding the $A$-norm of the error of the Conjugate Gradient method \cite{kn96,stti02,list13}.
 
 
 
@@ -1231,7 +1131,7 @@ A practical iterative method requires a stopping criterion to terminate the iter
 \begin{equation}\label{eq:res_linear_system}
 \vr_m=\vb-A\vx_m
 \end{equation}
-is a natural choice, since its norm is often available cheaply without explicitly forming $\vr_m$; see, e.g.,~\cite[Chapters~6 and~7]{saad00}. For general matrix functions, however, there is no analogous residual notion, except in special settings where the approximation arises from an underlying differential equation (cf.~\Cref{sec:exponential_integrators}). Many of the stopping criteria used in practice are therefore heuristic, while estimates with theoretical guarantees are often restricted to particular functions or function classes. Moreover, the a priori bounds from~\Cref{sec:convergence_polynomial} are typically ill-suited as stopping criteria: their constants can be large or difficult to determine, and the bounds do not account for the dependence of Krylov convergence on $\vb$, in particular on its contributions in different eigendirections. In the following, we discuss available error estimates, their computational costs, and their reliability.
+is a natural choice, since its norm is often available cheaply without explicitly forming $\vr_m$; see, e.g.,~\cite[Chap.~6 and~7]{saad00}. For general matrix functions, however, there is no analogous residual notion, except in special settings where the approximation arises from an underlying differential equation (cf.~\Cref{sec:exponential_integrators}). Many of the stopping criteria used in practice are therefore heuristic, while estimates with theoretical guarantees are often restricted to particular functions or function classes. Moreover, the a priori bounds from~\Cref{sec:convergence_polynomial} are typically ill-suited as stopping criteria: their constants can be large or difficult to determine, and the bounds do not account for the dependence of Krylov convergence on $\vb$, in particular on its contributions in different eigendirections. In the following, we discuss available error estimates, their computational costs, and their reliability.
 
 \subsubsection{The difference of iterates as error estimator}\label{sec:difference_of_iterates}
 
@@ -1260,38 +1160,15 @@ with
 All entries are available after iteration $m$. This construction is related to generalized averaged Gauss (or Spalevi\'c) quadrature~\cite{spal07}; cf.~\Cref{sec:errest_integration_quadrature} for connections between the Lanczos method and
 Gauss quadrature.
 
-\subsubsection{Error estimation in exponential integrators via truncated series expansions}\label{sec:errest_expint}
+\subsubsection{Error estimation for exponential integrators}\label{sec:errest_expint}
 
-For the matrix exponential, the Krylov error admits an expansion in terms of $\varphi$-functions~\eqref{eq:phi_functions},
-\begin{equation}\label{eq:error_expansion_exponential_saad}
-\exp(-\tau A)\vb-\vf_m=-\|\vb\|h_{m+1,m}\tau\sum_{k=1}^{\infty}\bigl(\ve_m^T\varphi_k(-\tau H_m)\ve_1\bigr)(-\tau A)^{k-1}\vv_{m+1};
-\end{equation}
-see~\cite{saad92}. For many problems, the terms of this series decrease rapidly with $k$, so that only the first few terms need to be considered. Using just the first term gives the estimate
+For the matrix exponential and related $\varphi$-functions, several error estimates exploit either truncated series expansions or the residual of the underlying differential equation. In~\cite{saad92}, the Krylov error for the exponential is expanded in terms of $\varphi$-functions~\eqref{eq:phi_functions}. Retaining only the first term gives the estimate
 \begin{equation}\label{eq:error_estimate_exponential_saad}
-\|\exp(-\tau A)\vb-\vf_m\|\approx\|\vb\|h_{m+1,m}\tau\,|\ve_m^T\varphi_1(-\tau H_m)\ve_1|;
+\|\exp(-\tau A)\vb-\vf_m\|\approx\|\vb\|h_{m+1,m}\tau\,|\ve_m^T\varphi_1(-\tau H_m)\ve_1|,
 \end{equation}
-cf.~\cite[Section~5.2]{saad92}. The $\varphi_1$-term can be obtained at little additional cost when evaluating $\exp(-\tau H_m)$ by the augmentation trick~\eqref{eq:exponential_phi_trick}. The estimate~\eqref{eq:error_estimate_exponential_saad} can be extended to $\varphi_p$ via
-\begin{equation}\label{eq:error_estimate_phi_saad}
-\|\varphi_p(-\tau A)\vb-\vf_m\|\approx\|\vb\|h_{m+1,m}\tau\,|\ve_m^T\varphi_{p+1}(-\tau H_m)\ve_1|;
-\end{equation}
-see~\cite{sidj98}. Related expansions involving divided differences for general analytic functions are developed in~\cite{jilv14}, while further a posteriori estimates for exponential-like functions are given in~\cite{dmr08}.
+which is inexpensive to evaluate using the augmentation trick~\eqref{eq:exponential_phi_trick}. Analogous estimates for higher-order $\varphi$-functions are given in~\cite{sidj98}, while related expansions for general analytic functions are developed in~\cite{jilv14}. Although~\eqref{eq:error_estimate_exponential_saad} is often accurate, its quality may deteriorate for large time steps, when the terms in the error expansion do not decrease sufficiently rapidly. A more robust estimator based on the first two terms, together with an error correction, is proposed in~\cite{sidj98}.
 
-The estimator~\eqref{eq:error_estimate_exponential_saad} is often accurate and has been incorporated into exponential integrator software~\cite{grt18,hls98,niwr12}. For large time steps $\tau$, however, the terms in the expansion can initially grow before they decay, causing the estimator to deteriorate~\cite{phsi95,sidj94,sidj98}. A more robust strategy in~\cite{sidj98} compares the norms of the first two terms,
-\begin{equation}\label{eq:err_est_sidje1}
-\begin{split}
-\varepsilon_1&:=\|\vb\|h_{m+1,m}\tau|\ve_m^T\varphi_1(-\tau H_m)\ve_1|,\\
-\varepsilon_2&:=\|\vb\|h_{m+1,m}\tau^2|\ve_m^T\varphi_2(-\tau H_m)\ve_1|\,\|A\vv_{m+1}\|.
-\end{split}
-\end{equation}
-For rapidly decreasing terms, $\varepsilon_1$ estimates the error of the uncorrected Krylov approximation. In the corrected approximation of~\cite{sidj98}, the remaining error is estimated by $\varepsilon_2$ if $\varepsilon_1\gg\varepsilon_2$, or, when $\varepsilon_2<\varepsilon_1$ but the decrease is slow, by the geometric-tail estimate
-\begin{equation}\label{eq:err_est_sidje2}
-\frac{\varepsilon_2}{1-\varepsilon_2/\varepsilon_1}.
-\end{equation}
-If $\varepsilon_2\geq\varepsilon_1$, the latter is used instead in the estimator of~\cite{sidj98}. The product $A\vv_{m+1}$ required for $\varepsilon_2$ can be reused in the following Krylov iteration.
-
-\subsubsection{Residual-based estimates for exponential integrators}\label{sec:errest_residual}
-
-An alternative uses the ODE residual introduced in~\Cref{sec:restarting}, first considered for error estimation in~\cite{bgh13} and extended in~\cite{bks23,bkt21,bokn20,krsc26}. For $\vu'(t)=-A\vu(t)$, $\vu(0)=\vb$, let $\vr_m(t)=-\vu_m'(t)-A\vu_m(t)$ and $\vepsilon_m(t)=\vu(t)-\vu_m(t)$. Then
+An alternative approach uses the ODE residual introduced in~\Cref{sec:restarting}. For $\vu'(t)=-A\vu(t)$, $\vu(0)=\vb$, let $\vr_m(t)=-\vu_m'(t)-A\vu_m(t)$ and $\vepsilon_m(t)=\vu(t)-\vu_m(t)$. Then~\cite{bgh13}
 \begin{equation}\label{eq:error_ivp}
 \vepsilon_m'(t)=-A\vepsilon_m(t)+\vr_m(t),\qquad\vepsilon_m(0)=\vnull,
 \end{equation}
@@ -1299,21 +1176,21 @@ so variation of constants gives
 \begin{equation}\label{eq:err_variation_of_constants}
 \vepsilon_m(t)=\int_0^t\exp(-(t-\tau)A)\vr_m(\tau)\,\d\tau.
 \end{equation}
-If $\|\exp(-tA)\|\leq C_Ae^{-t\omega}$ for $t\geq0$, with $C_A>0$ and $\omega\geq0$, then
+If $\|\exp(-tA)\|\leq C_Ae^{-t\omega}$ for $t\geq0$, with $C_A>0$ and $\omega\geq0$, this yields the bound
 \begin{equation}\label{eq:error_bound_max_res}
 \|\vepsilon_m(t)\|\leq C_A t\varphi_1(-t\omega)\max_{0\leq\tau\leq t}\|\vr_m(\tau)\|;
 \end{equation}
-see~\cite[Lemma~4.1]{bgh13}. Thus, monitoring the residual over $[0,t]$ gives a guaranteed upper bound when suitable constants $C_A$ and $\omega$ are known. Such bounds generally capture the qualitative convergence behavior, but may significantly overestimate the true error. The residual norm is determined by entries of $\exp(-\tau H_m)$, cf.~\Cref{sec:restarting}, but its maximization over $[0,t]$ typically requires several evaluations of a small matrix exponential. Each has cost $\mathcal O(m^3)$, potentially making this approach considerably more expensive than the difference of iterates. Higher-order and inhomogeneous ODEs are treated in~\cite[Section~3.4]{krsc26}.
+see~\cite[Lemma~4.1]{bgh13}. Extensions of residual-based approaches to higher-order and inhomogeneous differential equations are discussed in~\cite{krsc26}. While giving a rigorous guarantee when suitable constants $C_A,\omega$ are known, the bound~\eqref{eq:error_bound_max_res} can be pessimistic. Moreover, controlling the residual over $[0,t]$ generally requires several evaluations of $\exp(-\tau H_m)$, which can be costly. 
 
-Cheaper bounds are derived in~\cite{jak19}. If $\mathcal W(A)$ lies in the closed right half-plane and $\|\vb\|=1$, then, for $p\geq0$,
-\begin{equation}\label{eq:error_bound_phi_jawecki}
-\|\varphi_p(-tA)\vb-\vf_m(t)\|\leq h_{m+1,m}\gamma_m\frac{t^m}{(m+p)!},\qquad\gamma_m=\prod_{i=1}^{m-1}h_{i+1,i},
-\end{equation}
-which is asymptotically correct as $t\to0$, with error equal to the right-hand side plus $\mathcal O(t^{m+1})$. The bound costs essentially $\mathcal O(1)$ per iteration if its factors are updated recursively. Alternatively, contractivity of $\exp(-tA)$ and~\eqref{eq:err_variation_of_constants} give
+If $\mathcal W(A)$ lies in the closed right half-plane so that $\exp(-tA)$ is contractive, a possible alternative is
 \begin{equation}\label{eq:bound_variation_of_constants}
 \|\vepsilon_m(t)\|\leq\int_0^t\|\vr_m(\tau)\|\,\d\tau,
 \end{equation}
-which can be estimated by numerical quadrature~\cite[Section~4.1]{jawe21}, at the cost of evaluating residual norms at several time points.
+which can be approximated by numerical quadrature~\cite{jawe21}. A particularly inexpensive bound for this setting is derived in~\cite{jak19},
+\begin{equation}\label{eq:error_bound_phi_jawecki}
+\|\varphi_p(-tA)\vb-\vf_m(t)\|\leq h_{m+1,m}\gamma_m\|\vb\|\frac{t^m}{(m+p)!},\qquad\gamma_m=\prod_{i=1}^{m-1}h_{i+1,i}
+\end{equation}
+for $p \geq 0$. This bound is asymptotically correct as $t\to0$ and requires only $\mathcal O(1)$ operations per iteration when its factors are updated recursively. 
 
 \subsubsection{Error estimates from error function representations}\label{sec:errest_integration_quadrature}
 Next, we present approaches that are based on expressing the Lanczos error as the action of a matrix function on a vector, which is typically given via an integral representation. %Unless stated otherwise, we assume $A$ Hermitian in this subsection.
@@ -1336,7 +1213,7 @@ with $h_{w,z}(x)=(x-w)/(x-z)$. Consequently,
 \end{equation}
 The bound thus separates the integral factor from the shifted linear system error. For Hermitian $A$, the former can be estimated from bounds on its spectral interval, the Ritz values of $H_m$, and a suitable quadrature rule on $\Gamma$. The latter can be controlled by established a priori or a posteriori estimates for linear systems. Different choices of contour, shift, quadrature rule, and linear system estimator give different bounds; see~\cite{cgmm22} for details and examples. Extensions to block Lanczos and non-Hermitian matrices are given in~\cite{ahpx25,xuch24}.
 
-A second approach exploits the relation between Lanczos and Gauss quadrature~\cite{fklr13,frsc15,gome94,gome97,gome09}. It requires $f(A)\vb-\vf_m=e_m(A)\vv_{m+1}$, with $e_m$ real-valued on the spectrum of the Hermitian matrix $A$. Such a representation arises, e.g., from the following theorem~\cite{fgs14,schw16b}.
+A second approach exploits the relation between Lanczos and Gauss quadrature~\cite{fklr13,frsc15,gome94,gome09}. It requires $f(A)\vb-\vf_m=e_m(A)\vv_{m+1}$, with $e_m$ real-valued on the spectrum of the Hermitian matrix $A$. Such a representation arises, e.g., from the following theorem~\cite{fgs14,schw16b}.
 \begin{theorem}\label{thm:error_function_stieltjes}
 Let $A \in \spC^{n \times n}$, let $\vb \in \spC^n$ and let $f$ be a Cauchy--Stieltjes function~\eqref{eq:stieltjes_function}. Assume that $A$ and $H_m$ have no eigenvalues on $\spR_0^-$ and denote the eigenvalues of $H_m$ by $\theta_1,\dots,\theta_m$. Then
 \begin{equation}\label{eq:integral_representation_error_stieltjes}
@@ -1367,9 +1244,9 @@ If $J_k$ is the tridiagonal matrix obtained from $k$ Lanczos steps starting with
 \begin{equation}\label{eq:gauss_bounds_error}
 \ve_1^H(e_m(J_k))^2\ve_1\leq\|f(A)\vb-\vf_m\|^2\leq\ve_1^H(e_m(\widetilde J_k))^2\ve_1;
 \end{equation}
-see~\cite[Theorem~4]{frsc15}. In principle, evaluating these quadrature rules requires $k$ additional matrix-vector products with $A$ which do not advance the original Lanczos iteration. The \emph{restart recovery} technique~\cite{fklr13,frsc15,schw16b} instead extracts the required data from $H_{m+k}$ after $m+k$ Lanczos steps, at a cost of $\mathcal O(k^2)$ operations. The resulting bounds are retrospective: after iteration $m+k$, they provide error bounds for iteration $m$. Larger values of $k$ generally improve the accuracy of the quadrature estimate, but also increase this delay. For non-Hermitian matrices, Arnoldi quadrature yields analogous estimates but generally no guaranteed bounds, with recovery cost $\mathcal O((m+k)^2)$~\cite[Section~5]{frsc15}. An extension to Laplace transforms is discussed in~\cite[Section~4.4.4]{tsol23}.
+see~\cite[Theorem~4]{frsc15}. In principle, evaluating these quadrature rules requires $k$ additional matrix-vector products with $A$ which do not advance the original Lanczos iteration. The \emph{restart recovery} technique~\cite{fklr13,frsc15,schw16b} instead extracts the required data from $H_{m+k}$ after $m+k$ Lanczos steps, at a cost of $\mathcal O(k^2)$ operations. The resulting bounds are retrospective: after iteration $m+k$, they provide error bounds for iteration $m$. Larger values of $k$ generally improve the accuracy of the quadrature estimate, but also increase this delay. For non-Hermitian matrices, Arnoldi quadrature yields analogous estimates but generally no guaranteed bounds, with recovery cost $\mathcal O((m+k)^2)$~\cite[sect.~5]{frsc15}. An extension to Laplace transforms is discussed in~\cite[sect.~4.4.4]{tsol23}.
 
-Two further approaches are worth mentioning. In~\cite[Section~4]{tale07}, the error is expressed as $f(A)\vb-\vf_m=Cg(A)\vv_{m+1}$, where $C$ is known and $g(z)=f[\theta_1,\dots,\theta_m,z]$ is a divided difference. This gives $\|f(A)\vb-\vf_m\|\leq|C|\max_{z\in\spec(A)}|g(z)|$, with the spectral maximum estimated using Ritz values from previous iterations. For rational functions, bounds based on shifted linear systems were developed in~\cite{frsi08a} and subsequently made rigorous using interval arithmetic and branch-and-bound techniques in~\cite{frsi09}.
+Two further approaches are worth mentioning. In~\cite[sect.~4]{tale07}, the error is expressed as $f(A)\vb-\vf_m=Cg(A)\vv_{m+1}$, where $C$ is known and $g(z)=f[\theta_1,\dots,\theta_m,z]$ is a divided difference. This gives $\|f(A)\vb-\vf_m\|\leq|C|\max_{z\in\spec(A)}|g(z)|$, with the spectral maximum estimated using Ritz values from previous iterations. For rational functions, bounds based on shifted linear systems were developed in~\cite{frsi08a} and subsequently made rigorous using interval arithmetic and branch-and-bound techniques in~\cite{frsi09}.
 
 \subsubsection{Experimental comparison of error estimators}\label{sec:comparison_err_est}
 \begin{figure}
@@ -1432,9 +1309,9 @@ The generic procedure is summarized in \Cref{alg:restarting_errorfunction} and i
 \end{algorithmic}
 \end{algorithm}
 
-Early restarting methods~\cite{eier06,its09,simp08,tale07} represented the \emph{error function} by divided differences, which can be unstable in finite precision arithmetic. More stable approaches exploit integral representations of $f$, especially for Cauchy--Stieltjes functions; see \Cref{thm:error_function_stieltjes}. Since the error function in~\eqref{eq:integral_representation_error_stieltjes} is again a scalar multiple of a Stieltjes function~\cite[Proposition~3.9]{schw16b}, the procedure can be applied recursively. Evaluating the error function in~\eqref{eq:integral_representation_error_em_stieltjes} requires numerical quadrature; tailored rules are discussed in~\cite[Section~4]{fgs14}. This generalizes restarting for a fixed partial fraction approximation~\cite{aeeg08a}: rather than choosing one rational approximation beforehand, the quadrature-based method can adapt it in each cycle using spectral information from $H_m^{(k)}$~\cite{fgs14,schw16b}; see also \Cref{sec:rational_approximation_quadrature} for the connection between quadrature rules and rational approximation..
+Early restarting methods~\cite{eier06,its09,simp08,tale07} represented the \emph{error function} by divided differences, which can be unstable in finite precision arithmetic. More stable approaches exploit integral representations of $f$, especially for Cauchy--Stieltjes functions; see \Cref{thm:error_function_stieltjes}. Since the error function in~\eqref{eq:integral_representation_error_stieltjes} is again a scalar multiple of a Stieltjes function~\cite[Proposition~3.9]{schw16b}, the procedure can be applied recursively. Evaluating the error function in~\eqref{eq:integral_representation_error_em_stieltjes} requires numerical quadrature; tailored rules are discussed in~\cite[sect.~4]{fgs14}. This generalizes restarting for a fixed partial fraction approximation~\cite{aeeg08a}: rather than choosing one rational approximation beforehand, the quadrature-based method can adapt it in each cycle using spectral information from $H_m^{(k)}$~\cite{fgs14,schw16b}; see also \Cref{sec:rational_approximation_quadrature} for the connection between quadrature rules and rational approximation..
 
-Unlike unrestarted Arnoldi, restarted methods need not converge. Superlinear convergence for any restart length is established in~\cite[Theorem~4.2 and Corollary~4.3]{eier06} for entire functions of order one. For Hermitian positive definite $A$, convergence of restarted Lanczos was proved for $m=1$ and a class including Cauchy--Stieltjes and Bernstein functions~\cite{aeeg08}, for arbitrary $m$ and Stieltjes functions~\cite{fgs14a}, and subsequently for Laplace transforms~\cite{tsol23}. Such results do not extend in general to non-Hermitian positive real matrices: \cite[Section~5.3]{schw16b} constructs a normal matrix with field of values in the right half plane for which restarted Arnoldi diverges for every $m<n$.
+Unlike unrestarted Arnoldi, restarted methods need not converge. Superlinear convergence for any restart length is established in~\cite[Theorem~4.2 and Corollary~4.3]{eier06} for entire functions of order one. For Hermitian positive definite $A$, convergence of restarted Lanczos was proved for $m=1$ and a class including Cauchy--Stieltjes and Bernstein functions~\cite{aeeg08}, for arbitrary $m$ and Stieltjes functions~\cite{fgs14a}, and subsequently for Laplace transforms~\cite{tsol23}. Such results do not extend in general to non-Hermitian positive real matrices: \cite[sect.~5.3]{schw16b} constructs a normal matrix with field of values in the right half plane for which restarted Arnoldi diverges for every $m<n$.
 
 Restarting may considerably delay convergence. One remedy is \emph{deflated (or thick) restarting}~\cite{eeg11,nieh06,wps18}, where approximate eigenvectors from one cycle enrich the next Krylov subspace; another is restarted Radau--Lanczos~\cite{flss17}, discussed in \Cref{sec:hessenberg_low_rank}. At the end of the first cycle, one computes a partial Schur decomposition $H_m^{(1)}U^{(1)}=U^{(1)}T^{(1)}$ for $\ell$ selected Ritz values, often near singularities or branch cuts of $f$. With $Y^{(1)}=V_m^{(1)}U^{(1)}$ and $\vu^{(1)}=(U^{(1)})^H\ve_m$, the Arnoldi relation gives $AY^{(1)}=Y^{(1)}T^{(1)}+h_{m+1,m}^{(1)}\vv_{m+1}^{(1)}(\vu^{(1)})^H$. Extending this relation by $m$ Arnoldi steps produces an \emph{Arnoldi-like decomposition}~\cite{eier06,eeg11},
 \begin{equation}\label{eq:arnoldi_like_deflated}
@@ -1481,7 +1358,7 @@ f(A)\vb\approx r(A)\vb\approx\widetilde p(A)\vb+\sum_{i=1}^{\ell}\omega_i\vx_m^{
 \end{equation}
 with storage of $2\ell+1$ vectors. For more severe memory restrictions, the iterates can instead be accumulated directly into the combined approximation, reducing storage to $\ell+2$ vectors at the expense of additional vector operations; see~\cite{efls02}, where this was used for the matrix sign function in lattice QCD (cf.~\Cref{sec:qcd}).
 
-The number of iterations is governed by the worst-conditioned shifted system, typically corresponding to the smallest positive shift; systems that converge earlier can be removed from subsequent updates~\cite{efls02}. For Stieltjes functions, the convergence estimate in \Cref{thm:convergence_stieltjes} suggests that multishift CG and unrestarted Lanczos often require comparable numbers of matrix-vector products. When an accurate rational approximation with few poles is available, the fixed memory requirement makes multishift CG attractive compared with restarted Lanczos, as was also observed in~\cite{gusc21}. For Hermitian indefinite matrices, shifted MINRES can be used~\cite{pjed20}; non-Hermitian alternatives include shifted GMRES~\cite{frgl98}, FOM~\cite{simo03}, and QMR~\cite{freu93}; see also~\cite[Section~14]{sisz06}.
+The number of iterations is governed by the worst-conditioned shifted system, typically corresponding to the smallest positive shift; systems that converge earlier can be removed from subsequent updates~\cite{efls02}. For Stieltjes functions, the convergence estimate in \Cref{thm:convergence_stieltjes} suggests that multishift CG and unrestarted Lanczos often require comparable numbers of matrix-vector products. When an accurate rational approximation with few poles is available, the fixed memory requirement makes multishift CG attractive compared with restarted Lanczos, as was also observed in~\cite{gusc21}. For Hermitian indefinite matrices, shifted MINRES can be used~\cite{pjed20}; non-Hermitian alternatives include shifted GMRES~\cite{frgl98}, FOM~\cite{simo03}, and QMR~\cite{freu93}; see also~\cite[sect.~14]{sisz06}.
 
 \subsubsection{Other limited memory techniques}\label{sec:limited_memory_other}
 We briefly discuss two more specialized techniques for Hermitian matrices. The first compresses the Lanczos basis using rational Krylov subspaces (cf.~\Cref{sec:fA_rational_krylov})~\cite{casi25}. Suppose a rational approximation $r\approx f$ with poles $\vxi=(\xi_1,\dots,\xi_k)$ is known. After $m+k$ Lanczos steps, consider the decomposition of a hypothetically larger Lanczos basis and tridiagonal matrix as
@@ -1702,7 +1579,7 @@ The concept was first introduced by Ruhe in $1984$ in the context of eigenvalue 
 
  \todo[inline]{KB: to be checked whether the listed references and approaches based on error bounds from \Cref{sec:fA_rational_krylov_poles_prior} should be treated in more detail here}
  Several error bounds and estimates for the rational Krylov approximation to $f(A)\vb$ \eqref{eq:rat_arnoldi_approximation} are available in the literature, typically restricted to specific function classes.
- For the matrix exponential function, rational Krylov error expansion and estimate analogous to \eqref{eq:error_expansion_exponential_saad} and \eqref{eq:error_estimate_exponential_saad} in the polynomial Krylov case have been derived for general poles and matrices \cite{best24}.
+ For the matrix exponential function, rational Krylov error estimates analogous to \eqref{eq:error_estimate_exponential_saad} in the polynomial Krylov case have been derived for general poles and matrices \cite{best24}.
  For matrix $\varphi$-functions, error estimates for rational Krylov methods whose equidistant poles share the same real part have been proposed for negative semi-definite matrices \cite{gock14,gogr14}.
  For Cauchy–Stieltjes and Laplace–Stieltjes functions,  error bounds are available for positive definite matrices with a focus on matrices with Kronecker structure \cite{maro20}.
  For Cauchy--Stieltjes/Markov functions of symmetric matrices by linking the matrix function error to that of a shifted linear system in the same subspace \cite{simu24}.
@@ -1905,7 +1782,7 @@ Clearly, such inexact approaches carry the potential for reducing the dominating
 
 
 \section{Bilinear forms} \label{sec:bilinear_form}
-As we have seen in Sections~\ref{sec:complex_networks} and~\ref{sec:fA_kernel}, many applications require the computation of bilinear forms of the kind
+As we have seen in \cref{sec:complex_networks,sec:fA_kernel}, many applications require the computation of bilinear forms of the kind
 \[
 \vb^H f(A)\,\vb.
 \]
@@ -1915,7 +1792,7 @@ Although this problem may appear to be a trivial application of the techniques d
   \item optimality properties, such as exactness for polynomials of higher degree and sharper error bounds, can hold for $\vb^H f(A)\vb$ to a greater extent than for $f(A)\vb$;
   \item the behavior of algorithms in finite precision can differ when they are applied to bilinear forms rather than to $f(A)\vb$; see \cite{stti11} for $f(x) = x^{-1}$.
 \end{itemize}
-As anticipated in Section~\ref{sec:errest_integration_quadrature}, when $A$ is Hermitian, the Lanczos approximation of $\vb^H f(A)\vb$ corresponds to an $m$--point Gauss quadrature rule \cite{gome09,gome94}.
+As anticipated in \cref{sec:errest_integration_quadrature}, when $A$ is Hermitian, the Lanczos approximation of $\vb^H f(A)\vb$ corresponds to an $m$--point Gauss quadrature rule \cite{gome09,gome94}.
 This classical result follows from two observations. First, the bilinear form is a Riemann--Stieltjes integral with respect to the spectral measure~\eqref{eq:spectral_measure}. Second, the Lanczos approximant
 \( \|\vb\|^2 \ve_1^T f(H_m)\ve_1,
 \)
@@ -1929,9 +1806,9 @@ The Gauss quadrature rule has the maximal possible degree of exactness, namely $
 If the Lanczos method breaks down, the approximations
 \eqref{eq:rayleigh_ritz_approximation} and \eqref{eq:fab:gq} are exact.
 The same holds for the Arnoldi method.}.
-The same principles can be used to define and compute other Gauss--type quadrature rules, such as the Gauss--Radau and Gauss--Lobatto rules. For certain classes of functions, these rules yield upper and lower bounds on $\vb^H f(A)\vb$ (see, e.g., \cite{bebo10}), and they can also be used to obtain error estimates (see Section~\ref{sec:errest_integration_quadrature}).
+The same principles can be used to define and compute other Gauss--type quadrature rules, such as the Gauss--Radau and Gauss--Lobatto rules. For certain classes of functions, these rules yield upper and lower bounds on $\vb^H f(A)\vb$ (see, e.g., \cite{bebo10}), and they can also be used to obtain error estimates (see \cref{sec:errest_integration_quadrature}).
 
-\todo{SP: I think there are some parts that are overlapping with Section \ref{sec:errest_integration_quadrature}.}
+\todo{SP: I think there are some parts that are overlapping with \cref{sec:errest_integration_quadrature}.}
 For a general integrand $f$ and a general measure~\eqref{eq:spectral_measure}, however, reliable error estimation is a hard problem.
 The main difficulty is that rigorous bounds on the quadrature error involve quantities, such as the value of high--order derivatives of $f$ or information on the spectral measure, that are usually hard or impossible to evaluate in practice. Moreover, as recalled in~\cite{rst15}, it is important to remark that the difference between two consecutive Gauss approximations is known not to be a reliable error estimate in general.
 The \emph{anti--Gauss} rule introduced by Laurie~\cite{laur96} can be used instead. It is an $(m+1)$--point quadrature rule whose error is equal in magnitude and opposite in sign to that of the $m$--point Gauss rule for all polynomials of degree up to $2m+1$. Consequently, if the coefficients of the expansion of $f$ in the associated orthogonal polynomials decay sufficiently fast, the difference between the anti--Gauss and the Gauss approximations provides an estimate of the Gauss error~\cite{crs99,gome09}. A generalization with $m+k$ nodes was proposed and tested in~\cite{prre15}.
